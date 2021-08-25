@@ -50,4 +50,18 @@ class ByteArrayTag extends ArrayValueTag
     {
         return is_int($offset);
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getValueString(): string
+    {
+        $values = array_map(function ($elem) {
+            return str_pad(dechex($elem), 2, "0", STR_PAD_RIGHT);
+        }, array_slice($this->valueArray, 0, 32));
+        if(count($this->valueArray) > 32) {
+            $values[] = "...";
+        }
+        return $this->count() . " bytes [" . implode(" ", $values) . "]";
+    }
 }
