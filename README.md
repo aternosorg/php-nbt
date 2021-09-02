@@ -80,7 +80,7 @@ It is therefore possible to use this library to convert NBT structures between t
 
 More advanced writers can be created by implementing the `\Aternos\Nbt\IO\Writer\Writer` interface or by extending the `\Aternos\Nbt\IO\Writer\AbstractWriter` class.
 
-A writer object can be used to write/serialize and NBT structure.
+A writer object can be used to write/serialize an NBT structure.
 ```php
 $writer = (new \Aternos\Nbt\IO\Writer\StringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
