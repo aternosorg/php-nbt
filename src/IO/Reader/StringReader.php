@@ -55,6 +55,6 @@ class StringReader extends AbstractReader
      */
     public function returnData(string $data): void
     {
-        $this->data = $data . $this->data;
+        $this->ptr -= strlen($data);
     }
 }
