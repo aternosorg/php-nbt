@@ -82,7 +82,7 @@ More advanced writers can be created by implementing the `\Aternos\Nbt\IO\Writer
 
 A writer object can be used to write/serialize and NBT structure.
 ```php
-$writer = (new \Aternos\Nbt\IO\Writer\StringWriter("...nbtData..."))->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
+$writer = (new \Aternos\Nbt\IO\Writer\StringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 $tag->write($writer);
 file_put_contents("data.nbt", $writer->getStringData());
