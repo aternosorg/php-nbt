@@ -35,6 +35,31 @@ class ListTag extends ArrayValueTag
     }
 
     /**
+     * @return int
+     */
+    public function getContentTag(): int
+    {
+        return $this->contentTagType;
+    }
+
+    /**
+     * @param int $contentTagType
+     * @return ListTag
+     * @throws Exception
+     */
+    public function setContentTag(int $contentTagType): ListTag
+    {
+        /** @var Tag $value */
+        foreach ($this->valueArray as $value) {
+            if($value::TYPE !== $contentTagType) {
+                throw new Exception("New list content type incompatible with its values");
+            }
+        }
+        $this->contentTagType = $contentTagType;
+        return $this;
+    }
+
+    /**
      * @inheritDoc
      * @throws Exception
      */

@@ -2,10 +2,10 @@
 
 namespace Aternos\Nbt\IO\Reader;
 
-class CompressedStringReader extends StringReader
+class ZLibCompressedStringReader extends StringReader
 {
     public function __construct(string $data, int $format)
     {
-        parent::__construct(gzdecode($data), $format);
+        parent::__construct(zlib_decode($data), $format);
     }
 }
