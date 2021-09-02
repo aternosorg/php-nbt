@@ -60,7 +60,7 @@ class StringTag extends Tag
      */
     protected function getValueString(): string
     {
-        return "'" . $this->value . "'";
+        return "'" . str_replace("\n", "\\n", $this->value) . "'";
     }
 
     /**

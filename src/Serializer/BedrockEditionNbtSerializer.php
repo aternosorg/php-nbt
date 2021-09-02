@@ -102,9 +102,15 @@ class BedrockEditionNbtSerializer implements NbtSerializer
     protected function decodeLong(string $data): int
     {
         $data = strrev($data);
-        $firstHalf = Binary::readLInt(substr($data, 0, 4));
-        $secondHalf = Binary::readLInt(substr($data, 4));
-        return ($firstHalf << 32) | $secondHalf;
+        $firstHalf = Binary::readInt(substr($data, 0, 4));
+        $secondHalf = Binary::readInt(substr($data, 4));
+
+        $negative = boolval($firstHalf & pow(2, 31));
+
+        $firstHalf &= (pow(2, 31) - 1);
+        $result = ($firstHalf << 32) + $secondHalf;
+
+        return $negative ? $result*-1 : $result;
     }
 
     /**
