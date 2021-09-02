@@ -66,13 +66,13 @@ Similar to the reader object to read NBT data, a writer object is required
 to write NBT data.
 ```php
 //Write uncompressed NBT data
-$writer = (new \Aternos\Nbt\IO\Writer\StringWriter("...nbtData..."))->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
+$writer = (new \Aternos\Nbt\IO\Writer\StringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 //Write gzip compressed NBT data
-$gzipWriter = (new \Aternos\Nbt\IO\Writer\GZipCompressedStringWriter("...compressedNbtData..."))->setFormat(\Aternos\Nbt\NbtFormat::JAVA_EDITION);
+$gzipWriter = (new \Aternos\Nbt\IO\Writer\GZipCompressedStringWriter())->setFormat(\Aternos\Nbt\NbtFormat::JAVA_EDITION);
 
 //Write zlib compressed NBT data
-$gzipWriter = (new \Aternos\Nbt\IO\Writer\ZLibCompressedStringWriter("...compressedNbtData..."))->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
+$gzipWriter = (new \Aternos\Nbt\IO\Writer\ZLibCompressedStringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
 ```
 The NBT flavor used by a writer object can differ from the one used by the 
 reader object that was originally used to read the NBT structure.
