@@ -8,7 +8,7 @@ use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Serializer\NbtSerializer;
 use Exception;
 
-abstract class Tag
+abstract class Tag implements \JsonSerializable
 {
     public const TYPE = -1;
 
@@ -29,6 +29,8 @@ abstract class Tag
     ];
 
     protected ?string $name = null;
+
+    protected bool $isBeingSerialized = false;
 
     /**
      * @param string|null $name
@@ -109,6 +111,10 @@ abstract class Tag
      */
     public function serialize(NbtSerializer $serializer, bool $named = true): string
     {
+        if($this->isBeingSerialized) {
+            throw new Exception("Failed to serialize: Circular NBT structure detected");
+        }
+        $this->isBeingSerialized = true;
         $res = pack("C", static::TYPE & 0xff);
         if($named && $this->canBeNamed()) {
             $name = $this->getName();
@@ -119,6 +125,7 @@ abstract class Tag
             $res .= $this->getName();
         }
         $res .= $this->generatePayload($serializer);
+        $this->isBeingSerialized = false;
         return $res;
     }
 

@@ -10,16 +10,23 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
 {
     public const TYPE = TagType::TAG_Compound;
 
+    /**
+     * @var Tag[]
+     */
     protected array $valueArray = [];
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     public function generatePayload(NbtSerializer $serializer): string
     {
+        $writtenNames = [];
         $res = "";
-        /** @var Tag $value */
         foreach ($this->valueArray as $value) {
+            if(in_array($value->getName(), $writtenNames)) {
+                throw new Exception("Duplicate key '" . $value->getName() . "' in compound tag");
+            }
             $res .= $value->serialize($serializer, true);
         }
         $res .= (new EndTag())->serialize($serializer);
@@ -33,7 +40,7 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
     protected function readPayload(Reader $reader): Tag
     {
         while (!(($tag = Tag::load($reader)) instanceof EndTag)) {
-            $this->valueArray[$tag->getName()] = $tag;
+            $this->valueArray[] = $tag;
         }
         return $this;
     }
@@ -59,7 +66,8 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
         }else {
             $offset = $value->getName();
         }
-        $this->valueArray[$offset] = $value;
+        $this->offsetUnset($offset);
+        $this->valueArray[] = $value;
     }
 
     /**
@@ -107,7 +115,12 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
      */
     public function offsetExists($offset): bool
     {
-        return array_key_exists($offset, $this->valueArray);
+        foreach ($this->valueArray as $val) {
+            if($val->getName() === $offset) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -115,7 +128,12 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
      */
     public function offsetGet($offset)
     {
-        return $this->valueArray[$offset];
+        foreach ($this->valueArray as $val) {
+            if($val->getName() === $offset) {
+                return $val;
+            }
+        }
+        return null;
     }
 
     /**
@@ -123,7 +141,12 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
      */
     public function offsetUnset($offset)
     {
-        unset($this->valueArray[$offset]);
+        foreach ($this->valueArray as $i => $val) {
+            if($val->getName() === $offset) {
+                unset($this->valueArray[$i]);
+                break;
+            }
+        }
     }
 
     /**
@@ -140,5 +163,17 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
     protected function getValueString(): string
     {
         return $this->count() . " entries\n{\n" . $this->indent(implode(", \n", array_map("strval", array_values($this->valueArray)))) . "\n}";
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function jsonSerialize()
+    {
+        $data = [];
+        foreach ($this->valueArray as $value) {
+            $data[$value->getName()] = $value;
+        }
+        return $data;
     }
 }

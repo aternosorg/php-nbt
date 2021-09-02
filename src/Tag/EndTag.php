@@ -40,4 +40,12 @@ class EndTag extends Tag
     {
         return "";
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function jsonSerialize()
+    {
+        return null;
+    }
 }

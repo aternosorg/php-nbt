@@ -156,4 +156,12 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     {
         return $this->count() . " entries\n[\n" . $this->indent(implode(", \n", array_map("strval", $this->valueArray))) . "\n]";
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function jsonSerialize()
+    {
+        return $this->valueArray;
+    }
 }
