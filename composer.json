@@ -1,5 +1,5 @@
 {
-  "name": "aternos/php-nbt",
+  "name": "aternos/nbt",
   "description": "PHP library to parse, modify, and create NBT objects",
   "type": "library",
   "license": "MIT",
