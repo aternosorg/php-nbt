@@ -6,6 +6,11 @@ for 64-bit types, including the relatively new `TAG_Long_Array`.
 
 Additionally, all three flavors (Java Edition, Bedrock Edition/little endian, and Bedrock Edition/VarInt) of the NBT format are supported.
 
+### Installation
+```shell
+composer require aternos/nbt
+```
+
 ## Usage
 ### Reading NBT data
 To read existing NBT data, a Reader object is required.
