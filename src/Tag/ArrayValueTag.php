@@ -154,7 +154,9 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      */
     protected function getValueString(): string
     {
-        return $this->count() . " entries\n[\n" . $this->indent(implode(", \n", array_map("strval", $this->valueArray))) . "\n]";
+        return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n[\n" .
+            $this->indent(implode(", \n", array_map("strval", $this->valueArray))) .
+            "\n]";
     }
 
     /**

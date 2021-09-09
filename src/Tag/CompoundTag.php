@@ -91,7 +91,7 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
      */
     public function key()
     {
-        return key($this->valueArray);
+        return $this->current()->getName();
     }
 
     /**
@@ -162,7 +162,9 @@ class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
      */
     protected function getValueString(): string
     {
-        return $this->count() . " entries\n{\n" . $this->indent(implode(", \n", array_map("strval", array_values($this->valueArray)))) . "\n}";
+        return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n{\n" .
+            $this->indent(implode(", \n", array_map("strval", array_values($this->valueArray)))) .
+            "\n}";
     }
 
     /**

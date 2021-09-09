@@ -62,6 +62,6 @@ class ByteArrayTag extends ArrayValueTag
         if(count($this->valueArray) > 32) {
             $values[] = "...";
         }
-        return $this->count() . " bytes [" . implode(" ", $values) . "]";
+        return $this->count() . " byte" . ($this->count() === 1 ? "" : "s") . " [" . implode(" ", $values) . "]";
     }
 }
