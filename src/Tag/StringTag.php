@@ -39,10 +39,15 @@ class StringTag extends Tag
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
     public function generatePayload(NbtSerializer $serializer): string
     {
-        return $serializer->encodeStringLengthPrefix(strlen($this->value)) . $this->value;
+        $length = strlen($this->value);
+        if($length > 0xffff) {
+            throw new \Exception("String exceeds maximum length of " . 0xffff . " characters");
+        }
+        return $serializer->encodeStringLengthPrefix($length) . $this->value;
     }
 
     /**
