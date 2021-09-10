@@ -3,6 +3,7 @@
 namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\IO\Reader\Reader;
+use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use pocketmine\utils\Binary;
 
@@ -101,16 +102,7 @@ class BedrockEditionNbtSerializer implements NbtSerializer
      */
     protected function decodeLong(string $data): int
     {
-        $data = strrev($data);
-        $firstHalf = Binary::readInt(substr($data, 0, 4));
-        $secondHalf = Binary::readInt(substr($data, 4));
-
-        $negative = boolval($firstHalf & pow(2, 31));
-
-        $firstHalf &= (pow(2, 31) - 1);
-        $result = ($firstHalf << 32) + $secondHalf;
-
-        return $negative ? $result*-1 : $result;
+        return @unpack("q", MachineByteOrder::isBigEndian() ? strrev($data) : $data)[1] ?? 0;
     }
 
     /**
@@ -118,9 +110,8 @@ class BedrockEditionNbtSerializer implements NbtSerializer
      */
     public function encodeLong(int $value): string
     {
-        $firstHalf = ($value & 0xFFFFFFFF00000000) >> 32;
-        $secondHalf = $value & 0xFFFFFFFF;
-        return strrev(pack('VV', $firstHalf, $secondHalf));
+        $packed = pack("q", $value);
+        return MachineByteOrder::isBigEndian() ? strrev($packed) : $packed;
     }
 
     /**
