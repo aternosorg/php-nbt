@@ -17,9 +17,14 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     public function generatePayload(NbtSerializer $serializer): string
     {
+        $count = $this->count();
+        if($count > 0x7fffffff) {
+            throw new \Exception("Array exceeds maximum length of " . 0x7fffffff . " entries");
+        }
         return $serializer->encodeLengthPrefix($this->count()) . $this->generateValues($serializer);
     }
 
