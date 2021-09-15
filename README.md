@@ -112,5 +112,5 @@ $dataLength = unpack("V", $data, 4)[1];
 if($dataLength !== strlen($data) - 8) {
     throw new Exception("Invalid level.dat data length");
 }
-$tag = \Aternos\Nbt\Tag\Tag::load(new StringReader(substr($data, 8), \Aternos\Nbt\NbtFormat::BEDROCK_EDITION));
+$tag = \Aternos\Nbt\Tag\Tag::load(new \Aternos\Nbt\IO\Reader\StringReader(substr($data, 8), \Aternos\Nbt\NbtFormat::BEDROCK_EDITION));
 ```
