@@ -92,3 +92,25 @@ $writer = (new \Aternos\Nbt\IO\Writer\StringWriter())->setFormat(\Aternos\Nbt\Nb
 $tag->write($writer);
 file_put_contents("data.nbt", $writer->getStringData());
 ```
+
+### Bedrock Edition level.dat
+While the Bedrock Edition level.dat file is an uncompressed NBT file, 
+its NBT data is prepended by two 32-bit little endian integers.
+
+The first one seems to be the version of the Bedrock Edition Storage Tool, 
+which is also stored in the `StorageVersion` tag of the NBT structure.
+
+The second number is the size of the file's NBT structure (not including the two prepending integers).
+
+A Bedrock Edition level.dat file could be read like this:
+```php
+$data = file_get_contents("level.dat");
+
+$version = unpack("V", $data)[1];
+$dataLength = unpack("V", $data, 4)[1];
+
+if($dataLength !== strlen($data) - 8) {
+    throw new Exception("Invalid level.dat data length");
+}
+$tag = \Aternos\Nbt\Tag\Tag::load(new StringReader(substr($data, 8), \Aternos\Nbt\NbtFormat::BEDROCK_EDITION));
+```
