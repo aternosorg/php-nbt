@@ -17,6 +17,7 @@
   "require": {
     "pocketmine/binaryutils": "^0.2.1",
     "php-64bit": "*",
-    "ext-zlib": "*"
+    "ext-zlib": "*",
+    "ext-json": "*"
   }
 }

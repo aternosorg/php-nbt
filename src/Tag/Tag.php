@@ -7,8 +7,9 @@ use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Serializer\NbtSerializer;
 use Exception;
+use JsonSerializable;
 
-abstract class Tag implements \JsonSerializable
+abstract class Tag implements JsonSerializable
 {
     public const TYPE = -1;
 
@@ -144,22 +145,6 @@ abstract class Tag implements \JsonSerializable
     }
 
     /**
-     * @param string $type
-     * @param string $value
-     * @return mixed
-     * @throws Exception
-     * @deprecated
-     */
-    protected function unpack(string $type, string $value)
-    {
-        $unpacked = @unpack($type, $value);
-        if($unpacked === false) {
-            throw new Exception("Failed to unpack " . $type . " from " . bin2hex($value));
-        }
-        return $unpacked[1];
-    }
-
-    /**
      * @param string $str
      * @return string
      */
@@ -195,7 +180,7 @@ abstract class Tag implements \JsonSerializable
      */
     public static function getTagClass(int $type): ?string
     {
-        return static::TAGS[$type] ?: null;
+        return static::TAGS[$type] ?? null;
     }
 
     /**
