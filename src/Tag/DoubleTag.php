@@ -20,7 +20,7 @@ class DoubleTag extends FloatValueTag
      */
     public function generatePayload(NbtSerializer $serializer): string
     {
-        if(!$this->rawValueValid($serializer->getFormat())) {
+        if($this->rawValueValid($serializer->getFormat())) {
             return $this->rawValue;
         }
         return $serializer->encodeDouble($this->value);
