@@ -2,8 +2,6 @@
 
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\IO\Reader\Reader;
-
 abstract class IntValueTag extends Tag
 {
     protected int $value;

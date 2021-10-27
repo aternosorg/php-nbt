@@ -4,6 +4,7 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\Serializer\NbtSerializer;
+use Exception;
 
 class StringTag extends Tag
 {
@@ -39,13 +40,13 @@ class StringTag extends Tag
 
     /**
      * @inheritDoc
-     * @throws \Exception
+     * @throws Exception
      */
     public function generatePayload(NbtSerializer $serializer): string
     {
         $length = strlen($this->value);
         if($length > 0xffff) {
-            throw new \Exception("String exceeds maximum length of " . 0xffff . " characters");
+            throw new Exception("String exceeds maximum length of " . 0xffff . " characters");
         }
         return $serializer->encodeStringLengthPrefix($length) . $this->value;
     }

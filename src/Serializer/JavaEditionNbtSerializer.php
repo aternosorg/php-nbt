@@ -76,7 +76,8 @@ class JavaEditionNbtSerializer implements NbtSerializer
     }
 
     /**
-     * @inheritDoc
+     * @param string $data
+     * @return int
      */
     public function decodeInt(string $data): int
     {

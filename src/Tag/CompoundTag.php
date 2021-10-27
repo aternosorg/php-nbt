@@ -2,11 +2,14 @@
 
 namespace Aternos\Nbt\Tag;
 
+use ArrayAccess;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\Serializer\NbtSerializer;
+use Countable;
 use Exception;
+use Iterator;
 
-class CompoundTag extends Tag implements \Iterator, \ArrayAccess, \Countable
+class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 {
     public const TYPE = TagType::TAG_Compound;
 
