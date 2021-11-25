@@ -181,4 +181,164 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         }
         return $data;
     }
+
+    /**
+     * Set a child tag by name
+     * If $name is null, the existing name of the tag object will be used
+     *
+     * @param string|null $name
+     * @param Tag $tag
+     * @return $this
+     * @throws Exception
+     */
+    public function set(?string $name, Tag $tag): CompoundTag
+    {
+        $this->offsetSet($name, $tag);
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function delete(string $name): CompoundTag
+    {
+        $this->offsetUnset($name);
+        return $this;
+    }
+
+    /**
+     * Get a child tag by name
+     *
+     * @param string $name
+     * @return Tag|null
+     */
+    public function get(string $name): ?Tag
+    {
+        return $this->offsetGet($name);
+    }
+
+    /**
+     * @param string $name
+     * @return ByteArrayTag|null
+     */
+    public function getByteArray(string $name): ?ByteArrayTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof ByteArrayTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return ByteTag|null
+     */
+    public function getByte(string $name): ?ByteTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof ByteTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return CompoundTag|null
+     */
+    public function getCompound(string $name): ?CompoundTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof CompoundTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return DoubleTag|null
+     */
+    public function getDouble(string $name): ?DoubleTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof DoubleTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return FloatTag|null
+     */
+    public function getFloat(string $name): ?FloatTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof FloatTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return IntArrayTag|null
+     */
+    public function getIntArray(string $name): ?IntArrayTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof IntArrayTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return IntTag|null
+     */
+    public function getInt(string $name): ?IntTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof IntTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @param int|null $listContentTag - Required content type for the list, if null, any type can be returned
+     * @return ListTag|null
+     */
+    public function getList(string $name, ?int $listContentTag = null): ?ListTag
+    {
+        $tag = $this->get($name);
+        if(!$tag instanceof ListTag || ($listContentTag !== null && $tag->getContentTag() !== $listContentTag)) {
+            return null;
+        }
+        return $tag;
+    }
+
+    /**
+     * @param string $name
+     * @return LongArrayTag|null
+     */
+    public function getLongArray(string $name): ?LongArrayTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof LongArrayTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return LongTag|null
+     */
+    public function getLong(string $name): ?LongTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof LongTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return ShortTag|null
+     */
+    public function getShort(string $name): ?ShortTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof ShortTag ? $tag : null;
+    }
+
+    /**
+     * @param string $name
+     * @return StringTag|null
+     */
+    public function getString(string $name): ?StringTag
+    {
+        $tag = $this->get($name);
+        return $tag instanceof StringTag ? $tag : null;
+    }
 }
