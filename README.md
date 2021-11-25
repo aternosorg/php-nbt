@@ -66,6 +66,19 @@ $myList[] = (new \Aternos\Nbt\Tag\StringTag())->setValue("Hello");
 $myList[] = (new \Aternos\Nbt\Tag\StringTag())->setValue("World");
 ```
 
+Alternatively, compound tags can be accessed using getter/setter functions. This is especially useful in combination with
+the new PHP null safe operator.
+```php
+/** @var \Aternos\Nbt\Tag\CompoundTag $playerDat */
+$playerDat = \Aternos\Nbt\Tag\Tag::load($reader);
+
+$playerDat->set("foo", (new \Aternos\Nbt\Tag\StringTag())->setValue("bar")); //Set a value
+$playerDat->delete("foo"); //Delete a value
+
+$playerName = $playerDat->getCompound("bukkit")?->getString("lastKnownName")?->getValue();
+echo $playerName ?? "Unknown player name";
+```
+
 ### Serializing NBT structures
 Similar to the reader object to read NBT data, a writer object is required
 to write NBT data.
