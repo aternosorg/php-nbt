@@ -171,4 +171,23 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     {
         return $this->valueArray;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function equals(Tag $tag): bool
+    {
+        if($tag === $this) {
+            return true;
+        }
+        if(!$tag instanceof ArrayValueTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
+            return false;
+        }
+        foreach ($this as $i => $val) {
+            if($val !== $tag[$i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

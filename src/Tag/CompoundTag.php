@@ -341,4 +341,27 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         $tag = $this->get($name);
         return $tag instanceof StringTag ? $tag : null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    function equals(Tag $tag): bool
+    {
+        if($tag === $this) {
+            return true;
+        }
+        if(!$tag instanceof CompoundTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
+            return false;
+        }
+        /**
+         * @var string $key
+         * @var Tag $val
+         */
+        foreach ($this as $key => $val) {
+            if(!isset($tag[$key]) || !$val->equals($tag[$key])) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

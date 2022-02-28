@@ -76,4 +76,13 @@ class StringTag extends Tag
     {
         return $this->value;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function equals(Tag $tag): bool
+    {
+        return $tag instanceof StringTag && $this->getType() === $tag->getType() &&
+            $tag->getValue() === $this->getValue();
+    }
 }

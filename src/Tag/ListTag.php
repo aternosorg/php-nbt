@@ -116,4 +116,28 @@ class ListTag extends ArrayValueTag
     {
         return parent::getTagTypeString() . "<" . TagType::NAMES[$this->contentTagType] . ">";
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function equals(Tag $tag): bool
+    {
+        if($tag === $this) {
+            return true;
+        }
+        if(!$tag instanceof ListTag || $this->getType() !== $tag->getType() ||
+            $this->getContentTag() !== $tag->getContentTag() || count($tag) !== count($this)) {
+            return false;
+        }
+        /**
+         * @var int $i
+         * @var Tag $val
+         */
+        foreach ($this as $i => $val) {
+            if(!$val->equals($tag[$i])) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

@@ -170,6 +170,12 @@ abstract class Tag implements JsonSerializable
     }
 
     /**
+     * @param Tag $tag
+     * @return bool
+     */
+    abstract function equals(Tag $tag): bool;
+
+    /**
      * @return string
      */
     abstract protected function getValueString(): string;

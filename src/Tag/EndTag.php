@@ -48,4 +48,12 @@ class EndTag extends Tag
     {
         return null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    function equals(Tag $tag): bool
+    {
+        return $tag->getType() === $this->getType();
+    }
 }
