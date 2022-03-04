@@ -29,9 +29,7 @@ class FloatTag extends FloatValueTag
      */
     public function setValue(float $value): FloatValueTag
     {
-        if($value !== $this->value) {
-            $this->resetRawValue();
-        }
+        $this->resetRawValue();
         return parent::setValue($value);
     }
 

@@ -10,7 +10,7 @@ class StringTag extends Tag
 {
     public const TYPE = TagType::TAG_String;
 
-    protected string $value;
+    protected string $value = "";
 
     /**
      * @return string

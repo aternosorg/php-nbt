@@ -4,7 +4,7 @@ namespace Aternos\Nbt\Tag;
 
 abstract class FloatValueTag extends Tag
 {
-    protected float $value;
+    protected float $value = 0;
 
     /**
      * @return float

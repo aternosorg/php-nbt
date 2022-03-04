@@ -30,9 +30,7 @@ class LongTag extends IntValueTag
      */
     public function setValue(int $value): IntValueTag
     {
-        if($value !== $this->value) {
-            $this->resetRawValue();
-        }
+        $this->resetRawValue();
         return parent::setValue($value);
     }
 

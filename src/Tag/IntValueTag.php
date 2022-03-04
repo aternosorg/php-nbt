@@ -4,7 +4,7 @@ namespace Aternos\Nbt\Tag;
 
 abstract class IntValueTag extends Tag
 {
-    protected int $value;
+    protected int $value = 0;
 
     /**
      * @return int
