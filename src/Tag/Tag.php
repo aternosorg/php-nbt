@@ -140,6 +140,9 @@ abstract class Tag implements JsonSerializable
         if(!($this instanceof CompoundTag) && !(in_array($writer->getFormat(), [NbtFormat::BEDROCK_EDITION_NETWORK, NbtFormat::BEDROCK_EDITION]) && $this instanceof ListTag)){
             throw new Exception("NBT files must start with a CompoundTag (or ListTag for Minecraft Bedrock Edition)");
         }
+        if($this->getName() === null) {
+            $this->setName("");
+        }
         $writer->write($this->serialize($writer->getSerializer()));
         return $this;
     }
