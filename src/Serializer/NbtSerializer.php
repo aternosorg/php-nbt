@@ -2,140 +2,76 @@
 
 namespace Aternos\Nbt\Serializer;
 
-use Aternos\Nbt\IO\Reader\Reader;
+use Aternos\Nbt\IO\Writer\Writer;
 
-interface NbtSerializer
+abstract class NbtSerializer
 {
-    /**
-     * Read a NBT length prefix (TAG_List, TAG_Byte_Array, TAG_Int_Array, and TAG_Long_Array)
-     *
-     * @param Reader $reader
-     * @return SerializerReadResult
-     */
-    public function readLengthPrefix(Reader $reader): SerializerReadResult;
+    public function __construct(protected Writer $writer)
+    {
+    }
 
     /**
-     * Encode a NBT length prefix (TAG_List, TAG_Byte_Array, TAG_Int_Array, and TAG_Long_Array)
+     * Write an NBT length prefix (TAG_List, TAG_Byte_Array, TAG_Int_Array, and TAG_Long_Array)
      *
      * @param int $value
-     * @return string
+     * @return $this
      */
-    public function encodeLengthPrefix(int $value): string;
+    abstract public function writeLengthPrefix(int $value): static;
 
     /**
-     * Read a NBT string length prefix
-     *
-     * @param Reader $reader
-     * @return SerializerReadResult
-     */
-    public function readStringLengthPrefix(Reader $reader): SerializerReadResult;
-
-    /**
-     * Encode a NBT string length prefix
+     * Write an NBT string length prefix
      *
      * @param int $value
-     * @return string
+     * @return $this
      */
-    public function encodeStringLengthPrefix(int $value): string;
+    abstract public function writeStringLengthPrefix(int $value): static;
 
     /**
-     * Encode a byte
-     *
-     * @param string $data
-     * @return int
-     */
-    public function decodeByte(string $data): int;
-
-    /**
-     * Decode a byte
-     *
      * @param int $value
-     * @return string
+     * @return $this
      */
-    public function encodeByte(int $value): string;
+    abstract public function writeByte(int $value): static;
 
     /**
-     * Encode a short
-     *
-     * @param string $data
-     * @return int
-     */
-    public function decodeShort(string $data): int;
-
-    /**
-     * Decode a short
-     *
      * @param int $value
-     * @return string
+     * @return $this
      */
-    public function encodeShort(int $value): string;
+    abstract public function writeShort(int $value): static;
 
     /**
-     * Decode an int
-     *
      * @param int $value
-     * @return string
+     * @return $this
      */
-    public function encodeInt(int $value): string;
+    abstract public function writeInt(int $value): static;
 
     /**
-     * Read an integer from a Reader object
-     *
-     * @param Reader $reader
-     * @return SerializerReadResult
-     */
-    public function readInt(Reader $reader): SerializerReadResult;
-
-    /**
-     * Decode a long
-     *
      * @param int $value
-     * @return string
+     * @return $this
      */
-    public function encodeLong(int $value): string;
+    abstract public function writeLong(int $value): static;
 
     /**
-     * Read a long from a Reader object
-     *
-     * @param Reader $reader
-     * @return SerializerReadResult
-     */
-    public function readLong(Reader $reader): SerializerReadResult;
-
-    /**
-     * Encode a float
-     *
-     * @param string $data
-     * @return float
-     */
-    public function decodeFloat(string $data): float;
-
-    /**
-     * Decode a float
-     *
      * @param float $value
-     * @return string
+     * @return $this
      */
-    public function encodeFloat(float $value): string;
+    abstract public function writeFloat(float $value): static;
 
     /**
-     * Encode a double
-     *
-     * @param string $data
-     * @return float
-     */
-    public function decodeDouble(string $data): float;
-
-    /**
-     * Decode a double
-     *
      * @param float $value
-     * @return string
+     * @return $this
      */
-    public function encodeDouble(float $value): string;
+    abstract public function writeDouble(float $value): static;
 
     /**
      * @return int
      */
-    public function getFormat(): int;
+    abstract public function getFormat(): int;
+
+    /**
+     * @return Writer
+     */
+    public function getWriter(): Writer
+    {
+        return $this->writer;
+    }
 }

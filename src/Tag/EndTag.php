@@ -3,7 +3,8 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class EndTag extends Tag
 {
@@ -12,15 +13,15 @@ class EndTag extends Tag
     /**
      * @inheritDoc
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
-        return "";
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
         return $this;
     }

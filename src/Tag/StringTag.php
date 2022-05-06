@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 use Exception;
 
 class StringTag extends Tag
@@ -42,21 +42,23 @@ class StringTag extends Tag
      * @inheritDoc
      * @throws Exception
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
         $length = strlen($this->value);
-        if($length > 0xffff) {
+        if ($length > 0xffff) {
             throw new Exception("String exceeds maximum length of " . 0xffff . " characters");
         }
-        return $serializer->encodeStringLengthPrefix($length) . $this->value;
+        $writer->getSerializer()->writeStringLengthPrefix($length);
+        $writer->write($this->value);
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
-        $length = $reader->getSerializer()->readStringLengthPrefix($reader)->getValue();
+        $length = $reader->getDeserializer()->readStringLengthPrefix()->getValue();
         $this->value = $reader->read($length);
         return $this;
     }

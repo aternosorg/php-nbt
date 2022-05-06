@@ -2,7 +2,7 @@
 
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\Serializer\SerializerReadResult;
+use Aternos\Nbt\Deserializer\DeserializerReadResult;
 
 trait RawValueTag
 {
@@ -41,7 +41,12 @@ trait RawValueTag
         return !is_null($this->rawValue) && (is_null($this->rawValueType) || $this->rawValueType === $format);
     }
 
-    protected function setRawDataFromSerializer(SerializerReadResult $result, int $format): void
+    /**
+     * @param DeserializerReadResult $result
+     * @param int $format
+     * @return void
+     */
+    protected function setRawDataFromSerializer(DeserializerReadResult $result, int $format): void
     {
         $this->rawValue = $result->getRawData();
         $this->rawValueType = $format;

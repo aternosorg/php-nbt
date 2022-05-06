@@ -11,7 +11,7 @@ class GZipCompressedStringWriter extends StringWriter
      */
     public function getStringData(): string
     {
-        if(($compressed = @gzencode(parent::getStringData())) === false) {
+        if (($compressed = @gzencode(parent::getStringData())) === false) {
             throw new Exception("Failed to apply GZip compression");
         }
         return $compressed;

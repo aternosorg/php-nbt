@@ -2,7 +2,7 @@
 
 namespace Aternos\Nbt\IO\Reader;
 
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
 
 interface Reader
 {
@@ -44,7 +44,7 @@ interface Reader
     public function returnData(string $data): void;
 
     /**
-     * @return NbtSerializer
+     * @return NbtDeserializer
      */
-    public function getSerializer(): NbtSerializer;
+    public function getDeserializer(): NbtDeserializer;
 }

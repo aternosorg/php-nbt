@@ -3,35 +3,34 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 use Exception;
 
 class ListTag extends ArrayValueTag
 {
     public const TYPE = TagType::TAG_List;
-
     protected int $contentTagType = TagType::TAG_End;
 
     /**
      * @inheritDoc
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
-        return $serializer->encodeByte($this->contentTagType) . $serializer->encodeLengthPrefix($this->count()) . $this->generateValues($serializer);
+        $writer->getSerializer()->writeByte($this->contentTagType)->writeLengthPrefix($this->count());
+        $this->writeValues($writer);
+        return $this;
     }
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
-    protected function generateValues(NbtSerializer $serializer): string
+    protected function writeValues(Writer $writer): string
     {
-        $res = "";
         /** @var Tag $value */
         foreach ($this->valueArray as $value) {
-            $res .= $value->generatePayload($serializer);
+            $value->writeContent($writer);
         }
-        return $res;
+        return $this;
     }
 
     /**
@@ -51,8 +50,8 @@ class ListTag extends ArrayValueTag
     {
         /** @var Tag $value */
         foreach ($this->valueArray as $value) {
-            if($value::TYPE !== $contentTagType) {
-                throw new Exception("New list content type incompatible with its values");
+            if ($value::TYPE !== $contentTagType) {
+                throw new Exception("New list content type is incompatible with its values");
             }
         }
         $this->contentTagType = $contentTagType;
@@ -68,7 +67,7 @@ class ListTag extends ArrayValueTag
         $values = [];
         /** @var Tag $tagClass */
         $tagClass = Tag::getTagClass($this->contentTagType);
-        if(is_null($tagClass)) {
+        if (is_null($tagClass)) {
             throw new Exception("Unknown ListTag content type " . $this->contentTagType);
         }
         for ($i = 0; $i < $length; $i++) {
@@ -82,23 +81,20 @@ class ListTag extends ArrayValueTag
      */
     protected function checkArrayValue($value): bool
     {
-        if(!($value instanceof Tag)) {
+        if (!($value instanceof Tag)) {
             return false;
         }
-        if($this->count() === 0 && $this->contentTagType === TagType::TAG_End) {
+        if ($this->count() === 0 && $this->contentTagType === TagType::TAG_End) {
             $this->contentTagType = $value::TYPE;
             return true;
         }
         return $value::TYPE === $this->contentTagType;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
-        $this->contentTagType = $reader->getSerializer()->decodeByte($reader->read(1));
-        return parent::readPayload($reader);
+        $this->contentTagType = $reader->getDeserializer()->readByte()->getValue();
+        return parent::readContent($reader);
     }
 
     /**
@@ -122,10 +118,10 @@ class ListTag extends ArrayValueTag
      */
     public function equals(Tag $tag): bool
     {
-        if($tag === $this) {
+        if ($tag === $this) {
             return true;
         }
-        if(!$tag instanceof ListTag || $this->getType() !== $tag->getType() ||
+        if (!$tag instanceof ListTag || $this->getType() !== $tag->getType() ||
             $this->getContentTag() !== $tag->getContentTag() || count($tag) !== count($this)) {
             return false;
         }
@@ -134,7 +130,7 @@ class ListTag extends ArrayValueTag
          * @var Tag $val
          */
         foreach ($this as $i => $val) {
-            if(!$val->equals($tag[$i])) {
+            if (!$val->equals($tag[$i])) {
                 return false;
             }
         }

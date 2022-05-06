@@ -5,7 +5,7 @@ namespace Aternos\Nbt\Tag;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
 use Exception;
 use JsonSerializable;
 
@@ -60,20 +60,16 @@ abstract class Tag implements JsonSerializable
     }
 
     /**
-     * Generate Tag payload
-     *
-     * @param NbtSerializer $serializer
-     * @return string
+     * @param Writer $writer
+     * @return $this
      */
-    abstract public function generatePayload(NbtSerializer $serializer): string;
+    abstract public function writeContent(Writer $writer): static;
 
     /**
-     * Read tag payload
-     *
      * @param Reader $reader
-     * @return Tag
+     * @return $this
      */
-    abstract protected function readPayload(Reader $reader): Tag;
+    abstract protected function readContent(Reader $reader): static;
 
     /**
      * @return int
@@ -88,46 +84,47 @@ abstract class Tag implements JsonSerializable
      *
      * @param Reader $reader
      * @param bool $named
-     * @return Tag
+     * @return $this
      * @throws Exception
      */
-    public function read(Reader $reader, bool $named = true): Tag
+    public function read(Reader $reader, bool $named = true): static
     {
-        if($named && $this->canBeNamed()) {
-            $nameLength = $reader->getSerializer()->readStringLengthPrefix($reader)->getValue();
+        if ($named && $this->canBeNamed()) {
+            $nameLength = $reader->getDeserializer()->readStringLengthPrefix()->getValue();
             $name = $reader->read($nameLength);
-            if(strlen($name) !== $nameLength) {
+            if (strlen($name) !== $nameLength) {
                 throw new Exception("Failed to read name of " . static::class);
             }
             $this->setName($name);
         }
-        return $this->readPayload($reader);
+        return $this->readContent($reader);
     }
 
     /**
-     * @param NbtSerializer $serializer
+     * @param Writer $writer
      * @param bool $named
-     * @return string
+     * @return $this
      * @throws Exception
      */
-    public function serialize(NbtSerializer $serializer, bool $named = true): string
+    public function writeData(Writer $writer, bool $named = true): static
     {
-        if($this->isBeingSerialized) {
+        if ($this->isBeingSerialized) {
             throw new Exception("Failed to serialize: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        $res = pack("C", static::TYPE & 0xff);
-        if($named && $this->canBeNamed()) {
+        $writer->write(pack("C", static::TYPE & 0xff));
+        $serializer = $writer->getSerializer();
+        if ($named && $this->canBeNamed()) {
             $name = $this->getName();
-            if(is_null($name)) {
+            if (is_null($name)) {
                 throw new Exception("Cannot write named tag, because tag does not have a name value");
             }
-            $res .= $serializer->encodeStringLengthPrefix(strlen($this->getName()));
-            $res .= $this->getName();
+            $serializer->writeStringLengthPrefix(strlen($this->getName()));
+            $writer->write($this->getName());
         }
-        $res .= $this->generatePayload($serializer);
+        $this->writeContent($writer);
         $this->isBeingSerialized = false;
-        return $res;
+        return $this;
     }
 
     /**
@@ -135,15 +132,17 @@ abstract class Tag implements JsonSerializable
      * @return $this
      * @throws Exception
      */
-    public function write(Writer $writer): Tag
+    public function write(Writer $writer): static
     {
-        if(!($this instanceof CompoundTag) && !(in_array($writer->getFormat(), [NbtFormat::BEDROCK_EDITION_NETWORK, NbtFormat::BEDROCK_EDITION]) && $this instanceof ListTag)){
+        if (!($this instanceof CompoundTag) &&
+            !(in_array($writer->getFormat(), [NbtFormat::BEDROCK_EDITION_NETWORK, NbtFormat::BEDROCK_EDITION]) &&
+                $this instanceof ListTag)) {
             throw new Exception("NBT files must start with a CompoundTag (or ListTag for Minecraft Bedrock Edition)");
         }
-        if($this->getName() === null) {
+        if ($this->getName() === null) {
             $this->setName("");
         }
-        $writer->write($this->serialize($writer->getSerializer()));
+        $this->writeData($writer);
         return $this;
     }
 
@@ -200,9 +199,9 @@ abstract class Tag implements JsonSerializable
      */
     public static function load(Reader $reader, bool $named = true): Tag
     {
-        $type = $reader->getSerializer()->decodeByte($reader->read(1));
+        $type = $reader->getDeserializer()->readByte()->getValue();
         $class = static::getTagClass($type);
-        if(is_null($class)) {
+        if (is_null($class)) {
             throw new Exception("Unknown NBT tag type " . $type);
         }
         /** @var Tag $tag */

@@ -11,7 +11,7 @@ class ZLibCompressedStringWriter extends StringWriter
      */
     public function getStringData(): string
     {
-        if(($compressed = @zlib_encode(parent::getStringData(), ZLIB_ENCODING_DEFLATE)) === false) {
+        if (($compressed = @zlib_encode(parent::getStringData(), ZLIB_ENCODING_DEFLATE)) === false) {
             throw new Exception("Failed to apply ZLib compression");
         }
         return $compressed;

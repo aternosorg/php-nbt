@@ -1,12 +1,9 @@
 <?php
 
-
 namespace Aternos\Nbt\Tag;
 
-
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
-use Exception;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class ByteTag extends IntValueTag
 {
@@ -15,18 +12,18 @@ class ByteTag extends IntValueTag
     /**
      * @inheritDoc
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
-        return $serializer->encodeByte($this->value);
+        $writer->getSerializer()->writeByte($this->value);
+        return $this;
     }
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
-        $this->value = $reader->getSerializer()->decodeByte($reader->read(1));
+        $this->value = $reader->getDeserializer()->readByte()->getValue();
         return $this;
     }
 }

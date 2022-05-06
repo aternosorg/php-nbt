@@ -11,7 +11,7 @@ class GZipCompressedStringReader extends StringReader
      */
     public function __construct(string $data, int $format)
     {
-        if(($uncompressed = @gzdecode($data)) === false) {
+        if (($uncompressed = @gzdecode($data)) === false) {
             throw new Exception("Invalid GZip data");
         }
         parent::__construct($uncompressed, $format);

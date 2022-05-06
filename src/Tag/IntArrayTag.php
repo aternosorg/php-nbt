@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class IntArrayTag extends ArrayValueTag
 {
@@ -12,13 +12,12 @@ class IntArrayTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
-    protected function generateValues(NbtSerializer $serializer): string
+    protected function writeValues(Writer $writer): string
     {
-        $res = "";
         foreach ($this->valueArray as $value) {
-            $res .= $serializer->encodeInt($value);
+            $writer->getSerializer()->writeInt($value);
         }
-        return $res;
+        return $this;
     }
 
     /**
@@ -27,8 +26,8 @@ class IntArrayTag extends ArrayValueTag
     protected function readValues(Reader $reader, int $length): array
     {
         $values = [];
-        for($i = 0;$i < $length; $i++) {
-            $values[] = $reader->getSerializer()->readInt($reader)->getValue();
+        for ($i = 0; $i < $length; $i++) {
+            $values[] = $reader->getDeserializer()->readInt()->getValue();
         }
         return $values;
     }

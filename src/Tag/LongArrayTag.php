@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class LongArrayTag extends ArrayValueTag
 {
@@ -14,16 +14,16 @@ class LongArrayTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
-    protected function generateValues(NbtSerializer $serializer): string
+    protected function writeValues(Writer $writer): string
     {
-        if($this->rawValueValid($serializer->getFormat())) {
-            return $this->rawValue;
+        if ($this->rawValueValid($writer->getFormat())) {
+            $writer->write($this->rawValue);
+            return $this;
         }
-        $res = "";
         foreach ($this->valueArray as $value) {
-            $res .= $serializer->encodeLong($value);
+            $writer->getSerializer()->writeLong($value);
         }
-        return $res;
+        return $this;
     }
 
     /**
@@ -33,13 +33,13 @@ class LongArrayTag extends ArrayValueTag
     {
         $raw = "";
         $values = [];
-        for($i = 0;$i < $length; $i++) {
-            $res = $reader->getSerializer()->readLong($reader);
+        for ($i = 0; $i < $length; $i++) {
+            $res = $reader->getDeserializer()->readLong();
             $values[] = $res->getValue();
             $raw .= $res->getRawData();
         }
         $this->rawValue = $raw;
-        $this->rawValueType = $reader->getSerializer()->getFormat();
+        $this->rawValueType = $reader->getFormat();
         return $values;
     }
 

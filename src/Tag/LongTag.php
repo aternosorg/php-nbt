@@ -5,8 +5,7 @@ namespace Aternos\Nbt\Tag;
 
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
-use Exception;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class LongTag extends IntValueTag
 {
@@ -17,12 +16,25 @@ class LongTag extends IntValueTag
     /**
      * @inheritDoc
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
-        if($this->rawValueValid($serializer->getFormat())) {
-            return $this->rawValue;
+        if ($this->rawValueValid($writer->getFormat())) {
+            $writer->write($this->rawValue);
+            return $this;
         }
-        return $serializer->encodeLong($this->value);
+        $writer->getSerializer()->writeLong($this->value);
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function readContent(Reader $reader): static
+    {
+        $result = $reader->getDeserializer()->readLong();
+        $this->setRawDataFromSerializer($result, $reader->getFormat());
+        $this->value = $result->getValue();
+        return $this;
     }
 
     /**
@@ -32,17 +44,5 @@ class LongTag extends IntValueTag
     {
         $this->resetRawValue();
         return parent::setValue($value);
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    protected function readPayload(Reader $reader): Tag
-    {
-        $result = $reader->getSerializer()->readLong($reader);
-        $this->setRawDataFromSerializer($result, $reader->getFormat());
-        $this->value = $result->getValue();
-        return $this;
     }
 }

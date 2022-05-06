@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 use Exception;
 
 class ByteArrayTag extends ArrayValueTag
@@ -13,13 +13,12 @@ class ByteArrayTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
-    protected function generateValues(NbtSerializer $serializer): string
+    protected function writeValues(Writer $writer): string
     {
-        $res = "";
         foreach ($this->valueArray as $val) {
-            $res .= $serializer->encodeByte($val);
+            $writer->getSerializer()->writeByte($val);
         }
-        return $res;
+        return $this;
     }
 
     /**
@@ -30,7 +29,7 @@ class ByteArrayTag extends ArrayValueTag
     {
         $values = [];
         for ($i = 0; $i < $length; $i++) {
-            $values[] = $reader->getSerializer()->decodeByte($reader->read(1));
+            $values[] = $reader->getDeserializer()->readByte()->getValue();
         }
         return $values;
     }
@@ -59,7 +58,7 @@ class ByteArrayTag extends ArrayValueTag
         $values = array_map(function ($elem) {
             return str_pad(dechex($elem), 2, "0", STR_PAD_RIGHT);
         }, array_slice($this->valueArray, 0, 32));
-        if(count($this->valueArray) > 32) {
+        if (count($this->valueArray) > 32) {
             $values[] = "...";
         }
         return $this->count() . " byte" . ($this->count() === 1 ? "" : "s") . " [" . implode(" ", $values) . "]";

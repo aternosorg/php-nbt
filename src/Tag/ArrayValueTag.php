@@ -1,12 +1,10 @@
 <?php
 
-
 namespace Aternos\Nbt\Tag;
-
 
 use ArrayAccess;
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 use Countable;
 use Exception;
 use Iterator;
@@ -19,30 +17,29 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      * @inheritDoc
      * @throws Exception
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
         $count = $this->count();
-        if($count > 0x7fffffff) {
+        if ($count > 0x7fffffff) {
             throw new Exception("Array exceeds maximum length of " . 0x7fffffff . " entries");
         }
-        return $serializer->encodeLengthPrefix($this->count()) . $this->generateValues($serializer);
+        $writer->getSerializer()->writeLengthPrefix($count);
+        $this->writeValues($writer);
+        return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
-        $length = $reader->getSerializer()->readLengthPrefix($reader)->getValue();
+        $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
         $this->valueArray = $this->readValues($reader, $length);
         return $this;
     }
 
     /**
-     * @param NbtSerializer $serializer
+     * @param Writer $writer
      * @return string
      */
-    abstract protected function generateValues(NbtSerializer $serializer): string;
+    abstract protected function writeValues(Writer $writer): string;
 
     /**
      * @param Reader $reader
@@ -177,14 +174,14 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      */
     public function equals(Tag $tag): bool
     {
-        if($tag === $this) {
+        if ($tag === $this) {
             return true;
         }
-        if(!$tag instanceof ArrayValueTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
+        if (!$tag instanceof ArrayValueTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
             return false;
         }
         foreach ($this as $i => $val) {
-            if($val !== $tag[$i]) {
+            if ($val !== $tag[$i]) {
                 return false;
             }
         }

@@ -11,7 +11,7 @@ class MachineByteOrder
      */
     protected static function testByteOrder(): void
     {
-        if(is_null(static::$isLittle)) {
+        if (is_null(static::$isLittle)) {
             static::$isLittle = pack("S", 0x1234) === hex2bin("3412");
         }
     }

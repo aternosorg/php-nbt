@@ -3,22 +3,22 @@
 namespace Aternos\Nbt\IO\Reader;
 
 use Aternos\Nbt\NbtFormat;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
 
 abstract class AbstractReader implements Reader
 {
     protected int $format = NbtFormat::JAVA_EDITION;
-    protected ?NbtSerializer $serializer = null;
+    protected ?NbtDeserializer $deserializer = null;
 
     /**
      * @inheritDoc
      */
-    public function getSerializer(): NbtSerializer
+    public function getDeserializer(): NbtDeserializer
     {
-        if(is_null($this->serializer)) {
-            $this->serializer = NbtFormat::getSerializer($this->getFormat());
+        if (is_null($this->deserializer)) {
+            $this->deserializer = NbtFormat::getDeserializer($this->getFormat(), $this);
         }
-        return $this->serializer;
+        return $this->deserializer;
     }
 
     /**
@@ -36,6 +36,7 @@ abstract class AbstractReader implements Reader
     public function setFormat(int $format): AbstractReader
     {
         $this->format = $format;
+        $this->deserializer = null;
         return $this;
     }
 }

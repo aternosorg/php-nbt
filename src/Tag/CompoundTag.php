@@ -4,7 +4,7 @@ namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\IO\Writer\Writer;
 use Countable;
 use Exception;
 use Iterator;
@@ -22,25 +22,24 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      * @inheritDoc
      * @throws Exception
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
         $writtenNames = [];
-        $res = "";
         foreach ($this->valueArray as $value) {
-            if(in_array($value->getName(), $writtenNames)) {
+            if (in_array($value->getName(), $writtenNames)) {
                 throw new Exception("Duplicate key '" . $value->getName() . "' in compound tag");
             }
-            $res .= $value->serialize($serializer, true);
+            $value->writeData($writer, true);
         }
-        $res .= (new EndTag())->serialize($serializer);
-        return $res;
+        (new EndTag())->writeData($writer);
+        return $this;
     }
 
     /**
      * @inheritDoc
      * @throws Exception
      */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
         while (!(($tag = Tag::load($reader)) instanceof EndTag)) {
             $this->valueArray[] = $tag;
@@ -55,18 +54,18 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      */
     public function offsetSet($offset, $value): void
     {
-        if(!($value instanceof Tag) || $value instanceof EndTag){
+        if (!($value instanceof Tag) || $value instanceof EndTag) {
             throw new Exception("Invalid CompoundTag value");
         }
-        if(!is_string($offset) && !is_null($offset)) {
+        if (!is_string($offset) && !is_null($offset)) {
             throw new Exception("Invalid CompoundTag key");
         }
-        if(is_null($offset) && is_null($value->getName())) {
+        if (is_null($offset) && is_null($value->getName())) {
             throw new Exception("Tags inside a CompoundTag must be named.");
         }
-        if(!is_null($offset)) {
+        if (!is_null($offset)) {
             $value->setName($offset);
-        }else {
+        } else {
             $offset = $value->getName();
         }
         $this->offsetUnset($offset);
@@ -119,7 +118,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     public function offsetExists($offset): bool
     {
         foreach ($this->valueArray as $val) {
-            if($val->getName() === $offset) {
+            if ($val->getName() === $offset) {
                 return true;
             }
         }
@@ -132,7 +131,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     public function offsetGet($offset)
     {
         foreach ($this->valueArray as $val) {
-            if($val->getName() === $offset) {
+            if ($val->getName() === $offset) {
                 return $val;
             }
         }
@@ -145,7 +144,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     public function offsetUnset($offset)
     {
         foreach ($this->valueArray as $i => $val) {
-            if($val->getName() === $offset) {
+            if ($val->getName() === $offset) {
                 unset($this->valueArray[$i]);
                 break;
             }
@@ -296,7 +295,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     public function getList(string $name, ?int $listContentTag = null): ?ListTag
     {
         $tag = $this->get($name);
-        if(!$tag instanceof ListTag || ($listContentTag !== null && $tag->getContentTag() !== $listContentTag)) {
+        if (!$tag instanceof ListTag || ($listContentTag !== null && $tag->getContentTag() !== $listContentTag)) {
             return null;
         }
         return $tag;
@@ -347,10 +346,10 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      */
     function equals(Tag $tag): bool
     {
-        if($tag === $this) {
+        if ($tag === $this) {
             return true;
         }
-        if(!$tag instanceof CompoundTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
+        if (!$tag instanceof CompoundTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
             return false;
         }
         /**
@@ -358,7 +357,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
          * @var Tag $val
          */
         foreach ($this as $key => $val) {
-            if(!isset($tag[$key]) || !$val->equals($tag[$key])) {
+            if (!isset($tag[$key]) || !$val->equals($tag[$key])) {
                 return false;
             }
         }

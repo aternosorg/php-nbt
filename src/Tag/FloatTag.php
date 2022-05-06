@@ -3,8 +3,7 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
-use Exception;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class FloatTag extends FloatValueTag
 {
@@ -14,14 +13,26 @@ class FloatTag extends FloatValueTag
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
-        if($this->rawValueValid($serializer->getFormat())) {
-            return $this->rawValue;
+        if ($this->rawValueValid($writer->getFormat())) {
+            $writer->write($this->rawValue);
+            return $this;
         }
-        return $serializer->encodeFloat($this->value);
+        $writer->getSerializer()->writeFloat($this->value);
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function readContent(Reader $reader): static
+    {
+        $result = $reader->getDeserializer()->readFloat();
+        $this->setRawDataFromSerializer($result, $reader->getFormat());
+        $this->value = $result->getValue();
+        return $this;
     }
 
     /**
@@ -31,17 +42,5 @@ class FloatTag extends FloatValueTag
     {
         $this->resetRawValue();
         return parent::setValue($value);
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    protected function readPayload(Reader $reader): Tag
-    {
-        $this->rawValue = $reader->read(4);
-        $this->rawValueType = $reader->getFormat();
-        $this->value = $reader->getSerializer()->decodeFloat($this->rawValue);
-        return $this;
     }
 }

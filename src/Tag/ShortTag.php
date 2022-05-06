@@ -3,8 +3,7 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Serializer\NbtSerializer;
-use Exception;
+use Aternos\Nbt\IO\Writer\Writer;
 
 class ShortTag extends IntValueTag
 {
@@ -13,18 +12,18 @@ class ShortTag extends IntValueTag
     /**
      * @inheritDoc
      */
-    public function generatePayload(NbtSerializer $serializer): string
+    public function writeContent(Writer $writer): static
     {
-        return $serializer->encodeShort($this->value);
+        $writer->getSerializer()->writeShort($this->value);
+        return $this;
     }
 
     /**
      * @inheritDoc
-     * @throws Exception
      */
-    protected function readPayload(Reader $reader): Tag
+    protected function readContent(Reader $reader): static
     {
-        $this->value = $reader->getSerializer()->decodeShort($reader->read(2));
+        $this->value = $reader->getDeserializer()->readShort()->getValue();
         return $this;
     }
 }

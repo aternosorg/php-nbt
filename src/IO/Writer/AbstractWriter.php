@@ -15,8 +15,8 @@ abstract class AbstractWriter implements Writer
      */
     public function getSerializer(): NbtSerializer
     {
-        if(is_null($this->serializer)) {
-            $this->serializer = NbtFormat::getSerializer($this->getFormat());
+        if (is_null($this->serializer)) {
+            $this->serializer = NbtFormat::getSerializer($this->getFormat(), $this);
         }
         return $this->serializer;
     }
@@ -36,6 +36,7 @@ abstract class AbstractWriter implements Writer
     public function setFormat(int $format): AbstractWriter
     {
         $this->format = $format;
+        $this->serializer = null;
         return $this;
     }
 }

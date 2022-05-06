@@ -11,7 +11,7 @@ class ZLibCompressedStringReader extends StringReader
      */
     public function __construct(string $data, int $format)
     {
-        if(($uncompressed = @zlib_decode($data)) === false) {
+        if (($uncompressed = @zlib_decode($data)) === false) {
             throw new Exception("Invalid ZLib data");
         }
         parent::__construct($uncompressed, $format);
