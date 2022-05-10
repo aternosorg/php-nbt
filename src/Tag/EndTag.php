@@ -3,7 +3,6 @@
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\Deserializer\NbtDeserializer;
 use Aternos\Nbt\IO\Writer\Writer;
 
 class EndTag extends Tag
@@ -29,7 +28,15 @@ class EndTag extends Tag
     /**
      * @inheritDoc
      */
-    public function canBeNamed(): bool
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        return "";
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function canBeNamed(): bool
     {
         return false;
     }

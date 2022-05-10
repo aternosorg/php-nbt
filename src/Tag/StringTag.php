@@ -66,6 +66,15 @@ class StringTag extends Tag
     /**
      * @inheritDoc
      */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        $length = $reader->getDeserializer()->readStringLengthPrefix();
+        return $length->getRawData() . $reader->read($length->getValue());
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function getValueString(): string
     {
         return "'" . str_replace("\n", "\\n", $this->value) . "'";

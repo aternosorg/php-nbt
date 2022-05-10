@@ -26,4 +26,12 @@ class ShortTag extends IntValueTag
         $this->value = $reader->getDeserializer()->readShort()->getValue();
         return $this;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        return $reader->getDeserializer()->readShort()->getRawData();
+    }
 }

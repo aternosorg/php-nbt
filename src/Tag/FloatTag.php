@@ -38,6 +38,14 @@ class FloatTag extends FloatValueTag
     /**
      * @inheritDoc
      */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        return $reader->getDeserializer()->readFloat()->getRawData();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function setValue(float $value): FloatValueTag
     {
         $this->resetRawValue();

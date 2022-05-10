@@ -40,6 +40,14 @@ class LongTag extends IntValueTag
     /**
      * @inheritDoc
      */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        return $reader->getDeserializer()->readLong()->getRawData();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function setValue(int $value): IntValueTag
     {
         $this->resetRawValue();

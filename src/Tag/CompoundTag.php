@@ -17,6 +17,16 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      * @var Tag[]
      */
     protected array $valueArray = [];
+    protected ?string $rawContent = null;
+    protected ?int $rawContentFormat = null;
+
+    /**
+     * @return bool
+     */
+    public function isRaw(): bool
+    {
+        return $this->rawContent !== null;
+    }
 
     /**
      * @inheritDoc
@@ -24,6 +34,14 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      */
     public function writeContent(Writer $writer): static
     {
+        if($this->isRaw()) {
+            if($this->rawContentFormat !== $writer->getFormat()) {
+                throw new Exception("Cannot change format of raw compound tag");
+            }
+            $writer->write($this->rawContent);
+            return $this;
+        }
+
         $writtenNames = [];
         foreach ($this->valueArray as $value) {
             if (in_array($value->getName(), $writtenNames)) {
@@ -31,7 +49,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
             }
             $value->writeData($writer, true);
         }
-        (new EndTag())->writeData($writer);
+        (new EndTag($this->options))->writeData($writer);
         return $this;
     }
 
@@ -41,10 +59,29 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      */
     protected function readContent(Reader $reader): static
     {
-        while (!(($tag = Tag::load($reader)) instanceof EndTag)) {
-            $this->valueArray[] = $tag;
+        if($this->options->shouldBeReadRaw($this)) {
+            $this->rawContentFormat = $reader->getFormat();
+            $this->rawContent = static::readContentRaw($reader, $this->options);
+            return $this;
+        }
+        while (!(($tag = Tag::load($reader, $this->options, $this)) instanceof EndTag)) {
+            $this->valueArray[] = $tag->setParentTag($this);
         }
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        $result = "";
+        do {
+            $tag = Tag::loadRaw($reader, $options);
+            $result .= $tag->getData();
+        } while ($tag->getTagType() !== TagType::TAG_End);
+        return $result;
     }
 
     /**
@@ -60,6 +97,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         if (!is_string($offset) && !is_null($offset)) {
             throw new Exception("Invalid CompoundTag key");
         }
+        if($this->isRaw()) {
+            throw new Exception("Raw compound tags cannot be modified");
+        }
         if (is_null($offset) && is_null($value->getName())) {
             throw new Exception("Tags inside a CompoundTag must be named.");
         }
@@ -68,6 +108,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         } else {
             $offset = $value->getName();
         }
+        $value->setParentTag($this);
         $this->offsetUnset($offset);
         $this->valueArray[] = $value;
     }
@@ -140,11 +181,16 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     public function offsetUnset($offset)
     {
+        if($this->isRaw()) {
+            throw new Exception("Raw compound tags cannot be modified");
+        }
         foreach ($this->valueArray as $i => $val) {
             if ($val->getName() === $offset) {
+                $val->setParentTag(null);
                 unset($this->valueArray[$i]);
                 break;
             }
@@ -164,6 +210,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      */
     protected function getValueString(): string
     {
+        if($this->isRaw()) {
+            return strlen($this->rawContent) . " bytes";
+        }
         return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n{\n" .
             $this->indent(implode(", \n", array_map("strval", array_values($this->valueArray)))) .
             "\n}";
@@ -199,6 +248,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @param string $name
      * @return $this
+     * @throws Exception
      */
     public function delete(string $name): CompoundTag
     {

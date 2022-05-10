@@ -37,6 +37,18 @@ class ByteArrayTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
+    protected static function readValuesRaw(Reader $reader, int $length): string
+    {
+        $result = "";
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $reader->getDeserializer()->readByte()->getRawData();
+        }
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function checkArrayValue($value): bool
     {
         return is_int($value);

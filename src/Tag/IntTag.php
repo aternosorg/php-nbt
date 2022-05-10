@@ -26,4 +26,12 @@ class IntTag extends IntValueTag
         $this->value = $reader->getDeserializer()->readInt()->getValue();
         return $this;
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        return $reader->getDeserializer()->readInt()->getRawData();
+    }
 }

@@ -5,6 +5,7 @@ namespace Aternos\Nbt\Tag;
 use ArrayAccess;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use BadMethodCallException;
 use Countable;
 use Exception;
 use Iterator;
@@ -28,11 +29,24 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
         return $this;
     }
 
+    /**
+     * @inheritDoc
+     */
     protected function readContent(Reader $reader): static
     {
         $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
         $this->valueArray = $this->readValues($reader, $length);
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        $length = $reader->getDeserializer()->readLengthPrefix();
+        $valueData = static::readValuesRaw($reader, $length->getValue());
+        return $length->getRawData() . $valueData;
     }
 
     /**
@@ -47,6 +61,16 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      * @return array
      */
     abstract protected function readValues(Reader $reader, int $length): array;
+
+    /**
+     * @param Reader $reader
+     * @param int $length
+     * @return string
+     */
+    protected static function readValuesRaw(Reader $reader, int $length): string
+    {
+        throw new BadMethodCallException("Not implemented");
+    }
 
     /**
      * @param $value

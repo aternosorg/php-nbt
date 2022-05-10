@@ -5,7 +5,7 @@ namespace Aternos\Nbt\Tag;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
-use Aternos\Nbt\Deserializer\NbtDeserializer;
+use BadMethodCallException;
 use Exception;
 use JsonSerializable;
 
@@ -30,8 +30,17 @@ abstract class Tag implements JsonSerializable
     ];
 
     protected ?string $name = null;
-
     protected bool $isBeingSerialized = false;
+    protected ?Tag $parentTag = null;
+    protected TagOptions $options;
+
+    /**
+     * @param TagOptions|null $options
+     */
+    public function __construct(?TagOptions $options = null)
+    {
+        $this->options = $options ?: new TagOptions();
+    }
 
     /**
      * @param string|null $name
@@ -52,9 +61,59 @@ abstract class Tag implements JsonSerializable
     }
 
     /**
+     * @param Tag|null $parentTag
+     * @return $this
+     */
+    public function setParentTag(?Tag $parentTag): static
+    {
+        $this->parentTag = $parentTag;
+        return $this;
+    }
+
+    /**
+     * @return Tag|null
+     */
+    public function getParentTag(): ?Tag
+    {
+        return $this->parentTag;
+    }
+
+    /**
+     * @return array<?string>
+     * @throws Exception
+     */
+    public function getPath(): array
+    {
+        if ($this->isBeingSerialized) {
+            throw new Exception("Failed to resolve path: Circular NBT structure detected");
+        }
+        $this->isBeingSerialized = true;
+        if($this->parentTag) {
+            $path = [...$this->parentTag->getPath(), $this->getName()];
+        }else {
+            $path = [$this->getName()];
+        }
+        $this->isBeingSerialized = false;
+        return $path;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getStringPath(): ?string
+    {
+        try {
+            $path = $this->getPath();
+        }catch (Exception) {
+            return null;
+        }
+        return implode("/", $path);
+    }
+
+    /**
      * @return bool
      */
-    public function canBeNamed(): bool
+    public static function canBeNamed(): bool
     {
         return true;
     }
@@ -70,6 +129,16 @@ abstract class Tag implements JsonSerializable
      * @return $this
      */
     abstract protected function readContent(Reader $reader): static;
+
+    /**
+     * @param Reader $reader
+     * @param TagOptions $options
+     * @return string
+     */
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        throw new BadMethodCallException("Not implemented");
+    }
 
     /**
      * @return int
@@ -89,7 +158,7 @@ abstract class Tag implements JsonSerializable
      */
     public function read(Reader $reader, bool $named = true): static
     {
-        if ($named && $this->canBeNamed()) {
+        if ($named && static::canBeNamed()) {
             $nameLength = $reader->getDeserializer()->readStringLengthPrefix()->getValue();
             $name = $reader->read($nameLength);
             if (strlen($name) !== $nameLength) {
@@ -98,6 +167,28 @@ abstract class Tag implements JsonSerializable
             $this->setName($name);
         }
         return $this->readContent($reader);
+    }
+
+    /**
+     * @param Reader $reader
+     * @param TagOptions $options
+     * @param bool $named
+     * @return string
+     * @throws Exception
+     */
+    public static function readRaw(Reader $reader, TagOptions $options, bool $named = true): string
+    {
+        $result = "";
+        if ($named && static::canBeNamed()) {
+            $nameLength = $reader->getDeserializer()->readStringLengthPrefix();
+            $name = $reader->read($nameLength->getValue());
+            if (strlen($name) !== $nameLength->getValue()) {
+                throw new Exception("Failed to read name of " . static::class);
+            }
+            $result .= $nameLength->getRawData() . $name;
+        }
+        $result .= static::readContentRaw($reader, $options);
+        return $result;
     }
 
     /**
@@ -114,7 +205,7 @@ abstract class Tag implements JsonSerializable
         $this->isBeingSerialized = true;
         $writer->write(pack("C", static::TYPE & 0xff));
         $serializer = $writer->getSerializer();
-        if ($named && $this->canBeNamed()) {
+        if ($named && static::canBeNamed()) {
             $name = $this->getName();
             if (is_null($name)) {
                 throw new Exception("Cannot write named tag, because tag does not have a name value");
@@ -193,20 +284,47 @@ abstract class Tag implements JsonSerializable
 
     /**
      * @param Reader $reader
-     * @param bool $named
+     * @param TagOptions|null $options
+     * @param Tag|null $parent
      * @return Tag
      * @throws Exception
      */
-    public static function load(Reader $reader, bool $named = true): Tag
+    public static function load(Reader $reader, ?TagOptions $options = null, Tag $parent = null): Tag
     {
+        if($options === null) {
+            $options = new TagOptions();
+        }
+
         $type = $reader->getDeserializer()->readByte()->getValue();
         $class = static::getTagClass($type);
         if (is_null($class)) {
             throw new Exception("Unknown NBT tag type " . $type);
         }
         /** @var Tag $tag */
-        $tag = new $class();
-        $tag->read($reader, $named);
+        $tag = new $class($options);
+        $tag->setParentTag($parent)->read($reader);
         return $tag;
+    }
+
+    /**
+     * @param Reader $reader
+     * @param TagOptions|null $options
+     * @return RawTagReadResult
+     * @throws Exception
+     */
+    public static function loadRaw(Reader $reader, ?TagOptions $options = null): RawTagReadResult
+    {
+        if($options === null) {
+            $options = new TagOptions();
+        }
+
+        $type = $reader->getDeserializer()->readByte();
+        $class = static::getTagClass($type->getValue());
+        if (is_null($class)) {
+            throw new Exception("Unknown NBT tag type " . $type->getValue());
+        }
+        /** @var Tag $class */
+        $data = $class::readRaw($reader, $options);
+        return new RawTagReadResult($type->getRawData() . $data, $type->getValue());
     }
 }

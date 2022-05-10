@@ -46,6 +46,18 @@ class LongArrayTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
+    protected static function readValuesRaw(Reader $reader, int $length): string
+    {
+        $raw = "";
+        for ($i = 0; $i < $length; $i++) {
+            $raw = $reader->getDeserializer()->readLong()->getRawData();
+        }
+        return $raw;
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function checkArrayValue($value): bool
     {
         return is_int($value);
