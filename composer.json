@@ -19,6 +19,7 @@
     "php": ">=8.0",
     "php-64bit": "*",
     "ext-zlib": "*",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-mbstring": "*"
   }
 }

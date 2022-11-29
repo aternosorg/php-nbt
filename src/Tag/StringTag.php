@@ -4,6 +4,8 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\String\JavaEncoding;
+use Aternos\Nbt\String\StringDataFormatException;
 use Exception;
 
 class StringTag extends Tag
@@ -21,12 +23,33 @@ class StringTag extends Tag
     }
 
     /**
+     * @param string $encoding
+     * @return string
+     * @throws StringDataFormatException
+     */
+    public function getDecodedValue(string $encoding = "UTF-8"): string
+    {
+        return JavaEncoding::getInstance()->decode($this->value, $encoding);
+    }
+
+    /**
      * @param string $value
      * @return StringTag
      */
     public function setValue(string $value): StringTag
     {
         $this->value = $value;
+        return $this;
+    }
+
+    /**
+     * @param string $value
+     * @param string $encoding
+     * @return StringTag
+     */
+    public function setDecodedValue(string $value, string $encoding = "UTF-8"): StringTag
+    {
+        $this->value = JavaEncoding::getInstance()->encode($value, $encoding);
         return $this;
     }
 
