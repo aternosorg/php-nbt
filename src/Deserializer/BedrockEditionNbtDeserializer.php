@@ -4,6 +4,7 @@ namespace Aternos\Nbt\Deserializer;
 
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
+use Aternos\Nbt\String\StringDataFormatException;
 use pocketmine\utils\Binary;
 
 class BedrockEditionNbtDeserializer extends NbtDeserializer
@@ -87,5 +88,19 @@ class BedrockEditionNbtDeserializer extends NbtDeserializer
     {
         $raw = $this->getReader()->read(8);
         return new DeserializerFloatReadResult(Binary::readLDouble($raw), $raw);
+    }
+
+    /**
+     * @inheritDoc
+     * @throws StringDataFormatException
+     */
+    public function readString(): DeserializerStringReadResult
+    {
+        $length = $this->readStringLengthPrefix();
+        $val = $this->getReader()->read($length->getValue());
+        if(strlen($val) !== $length->getValue()){
+            throw new StringDataFormatException("Failed to read string: expected length " . $length->getValue() . ", got " . strlen($val));
+        }
+        return new DeserializerStringReadResult($val, $length->getRawData() . $val);
     }
 }

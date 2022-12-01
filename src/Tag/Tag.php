@@ -159,12 +159,8 @@ abstract class Tag implements JsonSerializable
     public function read(Reader $reader, bool $named = true): static
     {
         if ($named && static::canBeNamed()) {
-            $nameLength = $reader->getDeserializer()->readStringLengthPrefix()->getValue();
-            $name = $reader->read($nameLength);
-            if (strlen($name) !== $nameLength) {
-                throw new Exception("Failed to read name of " . static::class);
-            }
-            $this->setName($name);
+            $name = $reader->getDeserializer()->readString();
+            $this->setName($name->getValue());
         }
         return $this->readContent($reader);
     }
@@ -180,12 +176,8 @@ abstract class Tag implements JsonSerializable
     {
         $result = "";
         if ($named && static::canBeNamed()) {
-            $nameLength = $reader->getDeserializer()->readStringLengthPrefix();
-            $name = $reader->read($nameLength->getValue());
-            if (strlen($name) !== $nameLength->getValue()) {
-                throw new Exception("Failed to read name of " . static::class);
-            }
-            $result .= $nameLength->getRawData() . $name;
+            $name = $reader->getDeserializer()->readString();
+            $result .= $name->getRawData();
         }
         $result .= static::readContentRaw($reader, $options);
         return $result;
@@ -210,8 +202,7 @@ abstract class Tag implements JsonSerializable
             if (is_null($name)) {
                 throw new Exception("Cannot write named tag, because tag does not have a name value");
             }
-            $serializer->writeStringLengthPrefix(strlen($this->getName()));
-            $writer->write($this->getName());
+            $serializer->writeString($this->getName());
         }
         $this->writeContent($writer);
         $this->isBeingSerialized = false;

@@ -4,6 +4,7 @@ namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
+use Aternos\Nbt\String\JavaEncoding;
 use pocketmine\utils\Binary;
 
 class JavaEditionNbtSerializer extends NbtSerializer
@@ -85,7 +86,18 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeDouble(float $value): static
     {
-        $this->writer->write(Binary::writeDouble($value));
+        $this->getWriter()->write(Binary::writeDouble($value));
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function writeString(string $value): static
+    {
+        $encoded = JavaEncoding::getInstance()->encode($value);
+        $this->writeStringLengthPrefix(strlen($encoded));
+        $this->getWriter()->write($encoded);
         return $this;
     }
 }

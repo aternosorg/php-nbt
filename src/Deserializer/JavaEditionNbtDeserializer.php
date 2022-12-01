@@ -4,6 +4,8 @@ namespace Aternos\Nbt\Deserializer;
 
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
+use Aternos\Nbt\String\JavaEncoding;
+use Aternos\Nbt\String\StringDataFormatException;
 use pocketmine\utils\Binary;
 
 class JavaEditionNbtDeserializer extends NbtDeserializer
@@ -87,5 +89,19 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
     {
         $raw = $this->getReader()->read(8);
         return new DeserializerFloatReadResult(Binary::readDouble($raw), $raw);
+    }
+
+    /**
+     * @inheritDoc
+     * @throws StringDataFormatException
+     */
+    public function readString(): DeserializerStringReadResult
+    {
+        $length = $this->readStringLengthPrefix();
+        $val = $this->getReader()->read($length->getValue());
+        if(strlen($val) !== $length->getValue()){
+            throw new StringDataFormatException("Failed to read string: expected length " . $length->getValue() . ", got " . strlen($val));
+        }
+        return new DeserializerStringReadResult(JavaEncoding::getInstance()->decode($val), $length->getRawData() . $val);
     }
 }

@@ -4,8 +4,6 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
-use Aternos\Nbt\String\JavaEncoding;
-use Aternos\Nbt\String\StringDataFormatException;
 use Exception;
 
 class StringTag extends Tag
@@ -23,33 +21,12 @@ class StringTag extends Tag
     }
 
     /**
-     * @param string $encoding
-     * @return string
-     * @throws StringDataFormatException
-     */
-    public function getDecodedValue(string $encoding = "UTF-8"): string
-    {
-        return JavaEncoding::getInstance()->decode($this->value, $encoding);
-    }
-
-    /**
      * @param string $value
      * @return StringTag
      */
     public function setValue(string $value): StringTag
     {
         $this->value = $value;
-        return $this;
-    }
-
-    /**
-     * @param string $value
-     * @param string $encoding
-     * @return StringTag
-     */
-    public function setDecodedValue(string $value, string $encoding = "UTF-8"): StringTag
-    {
-        $this->value = JavaEncoding::getInstance()->encode($value, $encoding);
         return $this;
     }
 
@@ -71,8 +48,7 @@ class StringTag extends Tag
         if ($length > 0xffff) {
             throw new Exception("String exceeds maximum length of " . 0xffff . " characters");
         }
-        $writer->getSerializer()->writeStringLengthPrefix($length);
-        $writer->write($this->value);
+        $writer->getSerializer()->writeString($this->value);
         return $this;
     }
 
@@ -81,8 +57,7 @@ class StringTag extends Tag
      */
     protected function readContent(Reader $reader): static
     {
-        $length = $reader->getDeserializer()->readStringLengthPrefix()->getValue();
-        $this->value = $reader->read($length);
+        $this->value = $reader->getDeserializer()->readString()->getValue();
         return $this;
     }
 

@@ -55,6 +55,11 @@ abstract class NbtDeserializer
     abstract public function readDouble(): DeserializerFloatReadResult;
 
     /**
+     * @return DeserializerStringReadResult
+     */
+    abstract public function readString(): DeserializerStringReadResult;
+
+    /**
      * @return int
      */
     abstract public function getFormat(): int;

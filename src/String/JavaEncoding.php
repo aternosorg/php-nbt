@@ -60,7 +60,7 @@ class JavaEncoding
             }
 
             $result .= chr(0xED);
-            $result .= chr(0xA0 | (($c >> 0x10) & 0x0F));
+            $result .= chr(0xA0 | ((($c >> 0x10) & 0x0F) - 1));
             $result .= chr(0x80 | (($c >> 0x0A) & 0x3f));
             $result .= chr(0xED);
             $result .= chr(0xb0 | (($c >> 0x06) & 0x0f));

@@ -85,7 +85,17 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeDouble(float $value): static
     {
-        $this->writer->write(Binary::writeLDouble($value));
+        $this->getWriter()->write(Binary::writeLDouble($value));
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function writeString(string $value): static
+    {
+        $this->writeStringLengthPrefix(strlen($value));
+        $this->getWriter()->write($value);
         return $this;
     }
 }

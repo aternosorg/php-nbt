@@ -63,6 +63,12 @@ abstract class NbtSerializer
     abstract public function writeDouble(float $value): static;
 
     /**
+     * @param string $value
+     * @return $this
+     */
+    abstract public function writeString(string $value): static;
+
+    /**
      * @return int
      */
     abstract public function getFormat(): int;
