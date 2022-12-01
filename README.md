@@ -49,17 +49,9 @@ $myInt->setValue(42);
 echo $myInt->getValue(); // 42
 ```
 
-On String tags, `getValue()` and `setValue()` will use the raw string data, which uses Java's modified
-UTF-8 encoding. To use different encodings,
-use `getDecodedValue($encoding = "UTF-8")` and `setDecodedValue($value, $encoding = "UTF-8")` instead.
-A list of supported encodings is returned by the `mb_list_encodings()` function.
+On String tags, `getValue()` and `setValue()` use the UTF-8 encoding and convert strings based on the selected NBT flavor 
+when being serialized.
 
-```php
-$myString new \Aternos\Nbt\Tag\StringTag();
-
-$myString->setDecodedValue("Hello world!");
-echo $myString->getDecodedValue(); // Hello world!
-```
 
 Compound tags, list tags, and array tags implement the `ArrayAccess`, `Countable`,
 and `Iterator` interfaces and can therefore be accessed as arrays.
