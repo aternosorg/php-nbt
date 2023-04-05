@@ -22,6 +22,10 @@ class ListTag extends ArrayValueTag
     {
         $writer->getSerializer()->writeByte($this->contentTagType);
         if ($this->isRaw()) {
+            if($this->rawContentFormat !== $writer->getFormat()) {
+                throw new Exception("Cannot change format of raw list tag");
+            }
+
             $writer->getSerializer()->writeLengthPrefix($this->rawContentLength);
             $writer->write($this->rawContent);
         } else {
