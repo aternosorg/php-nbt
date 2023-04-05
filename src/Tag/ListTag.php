@@ -11,13 +11,23 @@ class ListTag extends ArrayValueTag
     public const TYPE = TagType::TAG_List;
     protected int $contentTagType = TagType::TAG_End;
 
+    protected ?int $rawContentLength = null;
+    protected ?string $rawContent = null;
+    protected ?int $rawContentFormat = null;
+
     /**
      * @inheritDoc
      */
     public function writeContent(Writer $writer): static
     {
-        $writer->getSerializer()->writeByte($this->contentTagType)->writeLengthPrefix($this->count());
-        $this->writeValues($writer);
+        $writer->getSerializer()->writeByte($this->contentTagType);
+        if ($this->isRaw()) {
+            $writer->getSerializer()->writeLengthPrefix($this->rawContentLength);
+            $writer->write($this->rawContent);
+        } else {
+            $writer->getSerializer()->writeLengthPrefix($this->count());
+            $this->writeValues($writer);
+        }
         return $this;
     }
 
@@ -48,6 +58,10 @@ class ListTag extends ArrayValueTag
      */
     public function setContentTag(int $contentTagType): ListTag
     {
+        if ($this->isRaw()) {
+            throw new Exception("Raw list tags cannot be modified");
+        }
+
         /** @var Tag $value */
         foreach ($this->valueArray as $value) {
             if ($value::TYPE !== $contentTagType) {
@@ -93,11 +107,21 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     protected function readContent(Reader $reader): static
     {
         $this->contentTagType = $reader->getDeserializer()->readByte()->getValue();
-        return parent::readContent($reader);
+        $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
+        $maxLength = $this->options->getMaxListTagLength();
+        if ($maxLength !== null && $length > $maxLength) {
+            $this->rawContentFormat = $reader->getFormat();
+            $this->rawContentLength = $length;
+            $this->rawContent = static::readValueTagsRaw($reader, $this->options, $this->contentTagType, $length);
+            return $this;
+        }
+        $this->valueArray = $this->readValues($reader, $length);
+        return $this;
     }
 
     /**
@@ -108,19 +132,41 @@ class ListTag extends ArrayValueTag
     {
         $contentTagType = $reader->getDeserializer()->readByte();
         $length = $reader->getDeserializer()->readLengthPrefix();
+
+        return $contentTagType->getRawData() . $length->getRawData() .
+            static::readValueTagsRaw($reader, $options, $contentTagType->getValue(), $length->getValue());
+    }
+
+    /**
+     * @param Reader $reader
+     * @param TagOptions $options
+     * @param int $contentType
+     * @param int $length
+     * @return string
+     * @throws Exception
+     */
+    protected static function readValueTagsRaw(Reader $reader, TagOptions $options, int $contentType, int $length): string
+    {
         $valueData = "";
 
         /** @var Tag $tagClass */
-        $tagClass = Tag::getTagClass($contentTagType->getValue());
+        $tagClass = Tag::getTagClass($contentType);
         if (is_null($tagClass)) {
-            throw new Exception("Unknown ListTag content type " . $contentTagType->getValue());
+            throw new Exception("Unknown ListTag content type " . $contentType);
         }
-        $lengthVal = $length->getValue();
-        for ($i = 0; $i < $lengthVal; $i++) {
+        for ($i = 0; $i < $length; $i++) {
             $valueData .= $tagClass::readRaw($reader, $options, false);
         }
 
-        return $contentTagType->getRawData() . $length->getRawData() . $valueData;
+        return $valueData;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRaw(): bool
+    {
+        return $this->rawContent !== null;
     }
 
     /**
@@ -144,6 +190,10 @@ class ListTag extends ArrayValueTag
      */
     public function offsetSet($offset, $value)
     {
+        if ($this->isRaw()) {
+            throw new Exception("Raw list tags cannot be modified");
+        }
+
         /** @var Tag $previousValue */
         $previousValue = $this->valueArray[$offset] ?? null;
         parent::offsetSet($offset, $value);
@@ -156,6 +206,10 @@ class ListTag extends ArrayValueTag
      */
     public function offsetUnset($offset)
     {
+        if ($this->isRaw()) {
+            throw new Exception("Raw list tags cannot be modified");
+        }
+
         /** @var Tag $previousValue */
         $previousValue = $this->valueArray[$offset] ?? null;
         $previousValue?->setParentTag(null);
@@ -184,5 +238,16 @@ class ListTag extends ArrayValueTag
             }
         }
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getValueString(): string
+    {
+        if ($this->isRaw()) {
+            return strlen($this->rawContent) . " bytes";
+        }
+        return parent::getValueString();
     }
 }

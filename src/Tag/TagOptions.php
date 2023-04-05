@@ -15,6 +15,11 @@ class TagOptions
     protected ?array $parsedCompoundPaths = null;
 
     /**
+     * @var int|null
+     */
+    protected ?int $maxListTagLength = null;
+
+    /**
      * @param string[] $rawCompoundPaths
      * @return $this
      */
@@ -51,10 +56,10 @@ class TagOptions
     }
 
     /**
-     * @param CompoundTag $tag
+     * @param Tag $tag
      * @return bool
      */
-    public function shouldBeReadRaw(CompoundTag $tag): bool
+    public function shouldBeReadRaw(Tag $tag): bool
     {
         $path = $tag->getStringPath();
         if($path === "") {
@@ -68,5 +73,23 @@ class TagOptions
             return !in_array($path, $whitelist, true);
         }
         return false;
+    }
+
+    /**
+     * @param int|null $maxListTagLength
+     * @return $this
+     */
+    public function setMaxListTagLength(?int $maxListTagLength): static
+    {
+        $this->maxListTagLength = $maxListTagLength;
+        return $this;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getMaxListTagLength(): ?int
+    {
+        return $this->maxListTagLength;
     }
 }
