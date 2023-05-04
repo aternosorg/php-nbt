@@ -83,7 +83,7 @@ class ListTag extends ArrayValueTag
     protected function readValues(Reader $reader, int $length): array
     {
         $values = [];
-        /** @var Tag $tagClass */
+        /** @var class-string<Tag>|null $tagClass */
         $tagClass = Tag::getTagClass($this->contentTagType);
         if (is_null($tagClass)) {
             throw new Exception("Unknown ListTag content type " . $this->contentTagType);
