@@ -18,7 +18,7 @@ abstract class FloatValueTag extends Tag
      * @param float $value
      * @return $this
      */
-    public function setValue(float $value): FloatValueTag
+    public function setValue(float $value): static
     {
         $this->value = $value;
         return $this;

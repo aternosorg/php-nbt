@@ -13,6 +13,9 @@ abstract class Tag implements JsonSerializable
 {
     public const TYPE = -1;
 
+    /**
+     * @var class-string<Tag>[]
+     */
     public const TAGS = [
         TagType::TAG_End => EndTag::class,
         TagType::TAG_Byte => ByteTag::class,
@@ -46,7 +49,7 @@ abstract class Tag implements JsonSerializable
      * @param string|null $name
      * @return $this
      */
-    public function setName(?string $name): Tag
+    public function setName(?string $name): static
     {
         $this->name = $name;
         return $this;
@@ -266,7 +269,7 @@ abstract class Tag implements JsonSerializable
 
     /**
      * @param int $type
-     * @return string|null
+     * @return class-string<Tag>|null
      */
     public static function getTagClass(int $type): ?string
     {

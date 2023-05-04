@@ -239,7 +239,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      * @return $this
      * @throws Exception
      */
-    public function set(?string $name, Tag $tag): CompoundTag
+    public function set(?string $name, Tag $tag): static
     {
         $this->offsetSet($name, $tag);
         return $this;
@@ -250,7 +250,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      * @return $this
      * @throws Exception
      */
-    public function delete(string $name): CompoundTag
+    public function delete(string $name): static
     {
         $this->offsetUnset($name);
         return $this;

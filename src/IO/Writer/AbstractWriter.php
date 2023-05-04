@@ -31,9 +31,9 @@ abstract class AbstractWriter implements Writer
 
     /**
      * @param int $format
-     * @return AbstractWriter
+     * @return $this
      */
-    public function setFormat(int $format): AbstractWriter
+    public function setFormat(int $format): static
     {
         $this->format = $format;
         $this->serializer = null;

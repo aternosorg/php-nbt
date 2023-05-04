@@ -31,9 +31,9 @@ abstract class AbstractReader implements Reader
 
     /**
      * @param int $format
-     * @return AbstractReader
+     * @return $this
      */
-    public function setFormat(int $format): AbstractReader
+    public function setFormat(int $format): static
     {
         $this->format = $format;
         $this->deserializer = null;

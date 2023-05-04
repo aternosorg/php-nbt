@@ -39,9 +39,9 @@ class TagOptions
 
     /**
      * @param string[]|null $parsedCompoundPaths
-     * @return TagOptions
+     * @return $this
      */
-    public function setParsedCompoundPaths(?array $parsedCompoundPaths): TagOptions
+    public function setParsedCompoundPaths(?array $parsedCompoundPaths): static
     {
         $this->parsedCompoundPaths = $parsedCompoundPaths;
         return $this;

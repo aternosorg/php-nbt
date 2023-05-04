@@ -22,9 +22,9 @@ class StringTag extends Tag
 
     /**
      * @param string $value
-     * @return StringTag
+     * @return $this
      */
-    public function setValue(string $value): StringTag
+    public function setValue(string $value): static
     {
         $this->value = $value;
         return $this;

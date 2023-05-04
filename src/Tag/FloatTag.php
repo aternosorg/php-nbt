@@ -46,7 +46,7 @@ class FloatTag extends FloatValueTag
     /**
      * @inheritDoc
      */
-    public function setValue(float $value): FloatValueTag
+    public function setValue(float $value): static
     {
         $this->resetRawValue();
         return parent::setValue($value);

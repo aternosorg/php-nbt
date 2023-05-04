@@ -18,7 +18,7 @@ abstract class IntValueTag extends Tag
      * @param int $value
      * @return $this
      */
-    public function setValue(int $value): IntValueTag
+    public function setValue(int $value): static
     {
         $this->value = $value;
         return $this;
