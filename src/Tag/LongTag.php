@@ -48,7 +48,7 @@ class LongTag extends IntValueTag
     /**
      * @inheritDoc
      */
-    public function setValue(int $value): IntValueTag
+    public function setValue(int $value): static
     {
         $this->resetRawValue();
         return parent::setValue($value);

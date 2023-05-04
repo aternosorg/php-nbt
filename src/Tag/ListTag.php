@@ -57,10 +57,10 @@ class ListTag extends ArrayValueTag
 
     /**
      * @param int $contentTagType
-     * @return ListTag
+     * @return $this
      * @throws Exception
      */
-    public function setContentTag(int $contentTagType): ListTag
+    public function setContentTag(int $contentTagType): static
     {
         if ($this->isRaw()) {
             throw new Exception("Raw list tags cannot be modified");
@@ -153,7 +153,7 @@ class ListTag extends ArrayValueTag
     {
         $valueData = "";
 
-        /** @var Tag $tagClass */
+        /** @var class-string<Tag>|null $tagClass */
         $tagClass = Tag::getTagClass($contentType);
         if (is_null($tagClass)) {
             throw new Exception("Unknown ListTag content type " . $contentType);
@@ -198,7 +198,7 @@ class ListTag extends ArrayValueTag
             throw new Exception("Raw list tags cannot be modified");
         }
 
-        /** @var Tag $previousValue */
+        /** @var Tag|null $previousValue */
         $previousValue = $this->valueArray[$offset] ?? null;
         parent::offsetSet($offset, $value);
         $value->setParentTag($this);
@@ -207,6 +207,7 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
+     * @throws Exception
      */
     public function offsetUnset($offset)
     {
@@ -214,7 +215,7 @@ class ListTag extends ArrayValueTag
             throw new Exception("Raw list tags cannot be modified");
         }
 
-        /** @var Tag $previousValue */
+        /** @var Tag|null $previousValue */
         $previousValue = $this->valueArray[$offset] ?? null;
         $previousValue?->setParentTag(null);
         parent::offsetUnset($offset);
