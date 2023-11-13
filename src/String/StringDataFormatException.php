@@ -2,7 +2,9 @@
 
 namespace Aternos\Nbt\String;
 
-class StringDataFormatException extends \Exception
+use Exception;
+
+class StringDataFormatException extends Exception
 {
 
 }

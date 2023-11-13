@@ -47,7 +47,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
             if (in_array($value->getName(), $writtenNames)) {
                 throw new Exception("Duplicate key '" . $value->getName() . "' in compound tag");
             }
-            $value->writeData($writer, true);
+            $value->writeData($writer);
         }
         (new EndTag($this->options))->writeData($writer);
         return $this;
@@ -116,7 +116,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @inheritDoc
      */
-    public function current()
+    public function current(): bool|Tag
     {
         return current($this->valueArray);
     }
@@ -124,7 +124,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @inheritDoc
      */
-    public function next()
+    public function next(): void
     {
         next($this->valueArray);
     }
@@ -132,7 +132,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @inheritDoc
      */
-    public function key()
+    public function key(): ?string
     {
         return $this->current()->getName();
     }
@@ -148,7 +148,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @inheritDoc
      */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->valueArray);
     }
@@ -169,7 +169,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @inheritDoc
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): ?Tag
     {
         foreach ($this->valueArray as $val) {
             if ($val->getName() === $offset) {
@@ -183,7 +183,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      * @inheritDoc
      * @throws Exception
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         if($this->isRaw()) {
             throw new Exception("Raw compound tags cannot be modified");
@@ -214,14 +214,14 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
             return strlen($this->rawContent) . " bytes";
         }
         return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n{\n" .
-            $this->indent(implode(", \n", array_map("strval", array_values($this->valueArray)))) .
+            $this->indent(implode(", \n", array_map(strval(...), array_values($this->valueArray)))) .
             "\n}";
     }
 
     /**
      * @inheritDoc
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         $data = [];
         foreach ($this->valueArray as $value) {

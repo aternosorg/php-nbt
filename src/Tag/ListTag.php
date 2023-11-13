@@ -192,7 +192,7 @@ class ListTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if ($this->isRaw()) {
             throw new Exception("Raw list tags cannot be modified");
@@ -209,7 +209,7 @@ class ListTag extends ArrayValueTag
      * @inheritDoc
      * @throws Exception
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         if ($this->isRaw()) {
             throw new Exception("Raw list tags cannot be modified");

@@ -81,7 +81,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @inheritDoc
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->valueArray);
     }
@@ -89,7 +89,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @inheritDoc
      */
-    public function next()
+    public function next(): void
     {
         next($this->valueArray);
     }
@@ -97,7 +97,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @inheritDoc
      */
-    public function key()
+    public function key(): string|int|null
     {
         return key($this->valueArray);
     }
@@ -113,7 +113,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @inheritDoc
      */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->valueArray);
     }
@@ -129,7 +129,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @inheritDoc
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->valueArray[$offset];
     }
@@ -138,7 +138,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      * @inheritDoc
      * @throws Exception
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if (!$this->checkArrayValue($value)) {
             throw new Exception("Invalid array value");
@@ -156,7 +156,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @inheritDoc
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->valueArray[$offset]);
     }
@@ -181,14 +181,14 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     protected function getValueString(): string
     {
         return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n[\n" .
-            $this->indent(implode(", \n", array_map("strval", $this->valueArray))) .
+            $this->indent(implode(", \n", array_map(strval(...), $this->valueArray))) .
             "\n]";
     }
 
     /**
      * @inheritDoc
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->valueArray;
     }
