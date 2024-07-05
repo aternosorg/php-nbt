@@ -413,4 +413,16 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         }
         return true;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        $data = [];
+        foreach ($this->valueArray as $value) {
+            $data[] = json_encode($value->getName()) . ": " . $value->toSNBT();
+        }
+        return "{" . implode(", ", $data) . "}";
+    }
 }

@@ -34,4 +34,12 @@ class IntTag extends IntValueTag
     {
         return $reader->getDeserializer()->readInt()->getRawData();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        return strval($this->value);
+    }
 }

@@ -64,4 +64,12 @@ class EndTag extends Tag
     {
         return $tag->getType() === $this->getType();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        return "";
+    }
 }

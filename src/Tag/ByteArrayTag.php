@@ -75,4 +75,16 @@ class ByteArrayTag extends ArrayValueTag
         }
         return $this->count() . " byte" . ($this->count() === 1 ? "" : "s") . " [" . implode(" ", $values) . "]";
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        $values = [];
+        foreach ($this->valueArray as $val) {
+            $values[] = $val . "b";
+        }
+        return "[B;" . implode(", ", $values) . "]";
+    }
 }

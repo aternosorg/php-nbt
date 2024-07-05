@@ -94,4 +94,12 @@ class StringTag extends Tag
         return $tag instanceof StringTag && $this->getType() === $tag->getType() &&
             $tag->getValue() === $this->getValue();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        return json_encode($this->value);
+    }
 }

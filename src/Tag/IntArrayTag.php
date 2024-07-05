@@ -59,4 +59,16 @@ class IntArrayTag extends ArrayValueTag
     {
         return is_int($offset);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        $values = [];
+        foreach ($this->valueArray as $val) {
+            $values[] = $val;
+        }
+        return "[I;" . implode(", ", $values) . "]";
+    }
 }

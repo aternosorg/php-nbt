@@ -255,4 +255,16 @@ class ListTag extends ArrayValueTag
         }
         return parent::getValueString();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toSNBT(): string
+    {
+        $values = [];
+        foreach ($this->valueArray as $value) {
+            $values[] = $value->toSNBT();
+        }
+        return "[" . implode(", ", $values) . "]";
+    }
 }
