@@ -421,7 +421,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     {
         $data = [];
         foreach ($this->valueArray as $value) {
-            $data[] = json_encode($value->getName()) . ": " . $value->toSNBT();
+            $data[] = StringTag::encodeSNBTString($value->getName()) . ": " . $value->toSNBT();
         }
         return "{" . implode(", ", $data) . "}";
     }
