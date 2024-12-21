@@ -292,7 +292,7 @@ abstract class Tag implements JsonSerializable
      * @return Tag
      * @throws Exception
      */
-    public static function load(Reader $reader, ?TagOptions $options = null, Tag $parent = null): Tag
+    public static function load(Reader $reader, ?TagOptions $options = null, ?Tag $parent = null): Tag
     {
         if($options === null) {
             $options = new TagOptions();
