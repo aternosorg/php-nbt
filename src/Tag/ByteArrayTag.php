@@ -67,9 +67,10 @@ class ByteArrayTag extends ArrayValueTag
      */
     protected function getValueString(): string
     {
-        $values = array_map(function ($elem) {
-            return str_pad(dechex($elem), 2, "0");
-        }, array_slice($this->valueArray, 0, 32));
+        $values = array_map(
+            fn(int $byte): string => sprintf("%02x", $byte & 0xff),
+            array_slice($this->valueArray, 0, 32)
+        );
         if (count($this->valueArray) > 32) {
             $values[] = "...";
         }
