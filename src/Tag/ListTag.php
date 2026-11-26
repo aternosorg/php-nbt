@@ -91,7 +91,7 @@ class ListTag extends ArrayValueTag
             throw new Exception("Unknown ListTag content type " . $this->contentTagType);
         }
         for ($i = 0; $i < $length; $i++) {
-            $values[] = (new $tagClass($this->options))->setParentTag($this)->read($reader, false);
+            $values[] = new $tagClass($this->options)->setParentTag($this)->read($reader, false);
         }
         return $values;
     }

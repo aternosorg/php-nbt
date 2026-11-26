@@ -43,7 +43,7 @@ will start with either a compound tag or a list tag.
 Tag values of type `TAG_Byte`, `TAG_Short`, `TAG_Int`, `TAG_Long`, `TAG_Float`,
 `TAG_Double`, `TAG_String` can be accessed via their `getValue()` and `setValue()` functions.
 ```php
-$myInt new \Aternos\Nbt\Tag\IntTag();
+$myInt = new \Aternos\Nbt\Tag\IntTag();
 
 $myInt->setValue(42);
 echo $myInt->getValue(); // 42
@@ -58,16 +58,16 @@ and `Iterator` interfaces and can therefore be accessed as arrays.
 ```php
 $myCompound = new \Aternos\Nbt\Tag\CompoundTag();
 
-$myCompound["myInt"] = (new \Aternos\Nbt\Tag\IntTag())->setValue(42);
-$myCompound["myFloat"] = (new \Aternos\Nbt\Tag\IntTag())->setValue(42.42);
+$myCompound["myInt"] = new \Aternos\Nbt\Tag\IntTag()->setValue(42);
+$myCompound["myFloat"] = new \Aternos\Nbt\Tag\FloatTag()->setValue(42.42);
 echo count($myCompound); // 2
 
 //Manually setting a list's type is not strictly necessary,
-//since it's type will be set automatically when the first element is added
-$myList = (new \Aternos\Nbt\Tag\ListTag())->setContentTag(\Aternos\Nbt\Tag\TagType::TAG_String);
+//since its type will be set automatically when the first element is added
+$myList = new \Aternos\Nbt\Tag\ListTag()->setContentTag(\Aternos\Nbt\Tag\TagType::TAG_String);
 
-$myList[] = (new \Aternos\Nbt\Tag\StringTag())->setValue("Hello");
-$myList[] = (new \Aternos\Nbt\Tag\StringTag())->setValue("World");
+$myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("Hello");
+$myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("World");
 ```
 
 Alternatively, compound tags can be accessed using getter/setter functions. This is especially useful in combination with
@@ -76,7 +76,7 @@ the new PHP null safe operator.
 /** @var \Aternos\Nbt\Tag\CompoundTag $playerDat */
 $playerDat = \Aternos\Nbt\Tag\Tag::load($reader);
 
-$playerDat->set("foo", (new \Aternos\Nbt\Tag\StringTag())->setValue("bar")); //Set a value
+$playerDat->set("foo", new \Aternos\Nbt\Tag\StringTag()->setValue("bar")); //Set a value
 $playerDat->delete("foo"); //Delete a value
 
 $playerName = $playerDat->getCompound("bukkit")?->getString("lastKnownName")?->getValue();
@@ -88,13 +88,13 @@ Similar to the reader object to read NBT data, a writer object is required
 to write NBT data.
 ```php
 //Write uncompressed NBT data
-$writer = (new \Aternos\Nbt\IO\Writer\StringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
+$writer = new \Aternos\Nbt\IO\Writer\StringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 //Write gzip compressed NBT data
-$gzipWriter = (new \Aternos\Nbt\IO\Writer\GZipCompressedStringWriter())->setFormat(\Aternos\Nbt\NbtFormat::JAVA_EDITION);
+$gzipWriter = new \Aternos\Nbt\IO\Writer\GZipCompressedStringWriter()->setFormat(\Aternos\Nbt\NbtFormat::JAVA_EDITION);
 
 //Write zlib compressed NBT data
-$gzipWriter = (new \Aternos\Nbt\IO\Writer\ZLibCompressedStringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
+$zlibWriter = new \Aternos\Nbt\IO\Writer\ZLibCompressedStringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
 ```
 The NBT flavor used by a writer object can differ from the one used by the 
 reader object that was originally used to read the NBT structure.
@@ -104,7 +104,7 @@ More advanced writers can be created by implementing the `\Aternos\Nbt\IO\Writer
 
 A writer object can be used to write/serialize an NBT structure.
 ```php
-$writer = (new \Aternos\Nbt\IO\Writer\StringWriter())->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
+$writer = new \Aternos\Nbt\IO\Writer\StringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 $tag->write($writer);
 file_put_contents("data.nbt", $writer->getStringData());
