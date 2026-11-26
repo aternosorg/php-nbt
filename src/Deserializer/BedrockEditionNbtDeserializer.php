@@ -67,8 +67,8 @@ class BedrockEditionNbtDeserializer extends NbtDeserializer
      */
     public function readLong(): DeserializerIntReadResult
     {
-        $raw = $this->getReader()->read(8);
-        $value = @unpack("q", MachineByteOrder::isBigEndian() ? strrev($raw) : $raw)[1] ?? 0;
+        $raw = $this->readRawLong();
+        $value = unpack("q", MachineByteOrder::isBigEndian() ? strrev($raw) : $raw)[1];
         return new DeserializerIntReadResult($value, $raw);
     }
 
