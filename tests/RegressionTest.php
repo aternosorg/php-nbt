@@ -44,4 +44,20 @@ class RegressionTest extends TestCase
             $this->assertSame($data, $rewriter->getStringData());
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testCompoundWithDuplicateNamesCannotBeWritten(): void
+    {
+        $renamed = new IntTag()->setValue(2);
+        $root = new CompoundTag()
+            ->set("a", new IntTag()->setValue(1))
+            ->set("b", $renamed);
+        $renamed->setName("a");
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Duplicate key 'a'");
+        $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
+    }
 }
