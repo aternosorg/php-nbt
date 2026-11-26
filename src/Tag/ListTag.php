@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
@@ -44,7 +46,7 @@ class ListTag extends ArrayValueTag
         foreach ($this->valueArray as $value) {
             $value->writeContent($writer);
         }
-        return $this;
+        return "";
     }
 
     /**

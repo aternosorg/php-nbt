@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
@@ -18,12 +20,12 @@ class LongArrayTag extends ArrayValueTag
     {
         if ($this->rawValueValid($writer->getFormat())) {
             $writer->write($this->rawValue);
-            return $this;
+            return "";
         }
         foreach ($this->valueArray as $value) {
             $writer->getSerializer()->writeLong($value);
         }
-        return $this;
+        return "";
     }
 
     /**

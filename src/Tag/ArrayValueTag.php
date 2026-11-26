@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
@@ -50,8 +52,10 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     }
 
     /**
+     * Write all values without the length prefix
+     *
      * @param Writer $writer
-     * @return string
+     * @return string not used by callers, implementations return an empty string
      */
     abstract protected function writeValues(Writer $writer): string;
 

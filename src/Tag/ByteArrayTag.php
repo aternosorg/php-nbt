@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
@@ -18,7 +20,7 @@ class ByteArrayTag extends ArrayValueTag
         foreach ($this->valueArray as $val) {
             $writer->getSerializer()->writeByte($val);
         }
-        return $this;
+        return "";
     }
 
     /**

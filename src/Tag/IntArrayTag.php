@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
@@ -17,7 +19,7 @@ class IntArrayTag extends ArrayValueTag
         foreach ($this->valueArray as $value) {
             $writer->getSerializer()->writeInt($value);
         }
-        return $this;
+        return "";
     }
 
     /**
