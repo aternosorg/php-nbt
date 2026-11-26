@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Deserializer;
 
 class DeserializerStringReadResult extends DeserializerReadResult
