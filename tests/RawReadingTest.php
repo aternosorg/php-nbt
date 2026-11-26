@@ -17,18 +17,15 @@ use PHPUnit\Framework\TestCase;
 class RawReadingTest extends TestCase
 {
     /**
-     * A root compound with a "raw" compound that contains every tag type except long arrays,
+     * A root compound with a "raw" compound that contains every tag type,
      * and a "parsed" compound next to it
      *
      * @throws Exception
      */
     protected function createData(int $format): string
     {
-        $raw = TagFixtures::everyTagType();
-        $raw->delete("longArray");
-
         $root = new CompoundTag()
-            ->set("raw", $raw)
+            ->set("raw", TagFixtures::everyTagType())
             ->set("parsed", new CompoundTag()->set("value", new IntTag()->setValue(42)))
             ->set("longList", TagFixtures::intList(1, 2, 3, 4, 5))
             ->set("shortList", TagFixtures::intList(1));
