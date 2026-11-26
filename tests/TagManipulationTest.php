@@ -2,6 +2,7 @@
 
 namespace Aternos\Nbt\Tests;
 
+use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\ArrayValueTag;
 use Aternos\Nbt\Tag\ByteArrayTag;
 use Aternos\Nbt\Tag\ByteTag;
@@ -86,6 +87,22 @@ class TagManipulationTest extends TestCase
         $this->expectException(Exception::class);
         $compound = new CompoundTag();
         $compound["a"] = 1;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testCompoundWithDuplicateNamesCannotBeWritten(): void
+    {
+        $renamed = new IntTag()->setValue(2);
+        $root = new CompoundTag()
+            ->set("a", new IntTag()->setValue(1))
+            ->set("b", $renamed);
+        $renamed->setName("a");
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Duplicate key 'a'");
+        $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
     }
 
     public function testCompoundIteratesInInsertionOrderWithNamesAsKeys(): void
