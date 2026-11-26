@@ -50,7 +50,7 @@ class LongArrayTag extends ArrayValueTag
     {
         $raw = "";
         for ($i = 0; $i < $length; $i++) {
-            $raw = $reader->getDeserializer()->readLong()->getRawData();
+            $raw .= $reader->getDeserializer()->readLong()->getRawData();
         }
         return $raw;
     }
