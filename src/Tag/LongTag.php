@@ -12,7 +12,7 @@ class LongTag extends IntValueTag
 {
     use RawValueTag;
 
-    public const int TYPE = TagType::TAG_Long;
+    public const TagType TYPE = TagType::LONG;
 
     /**
      * @inheritDoc

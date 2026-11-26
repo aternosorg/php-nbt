@@ -6,6 +6,7 @@ namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\NbtFormat;
 
 abstract class NbtSerializer
 {
@@ -85,10 +86,7 @@ abstract class NbtSerializer
      */
     abstract public function writeString(string $value): static;
 
-    /**
-     * @return int
-     */
-    abstract public function getFormat(): int;
+    abstract public function getFormat(): NbtFormat;
 
     /**
      * @return Writer

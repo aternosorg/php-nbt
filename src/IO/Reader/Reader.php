@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aternos\Nbt\IO\Reader;
 
 use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\NbtFormat;
 
 interface Reader
 {
@@ -32,11 +33,8 @@ interface Reader
 
     /**
      * NBT file format
-     * NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, or NbtFormat::BEDROCK_EDITION_NETWORK
-     *
-     * @return int
      */
-    public function getFormat(): int;
+    public function getFormat(): NbtFormat;
 
     /**
      * Return unused data to the reader buffer

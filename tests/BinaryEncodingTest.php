@@ -84,7 +84,7 @@ class BinaryEncodingTest extends TestCase
     }
 
     #[DataProvider("encodingProvider")]
-    public function testValueIsWrittenAsExpectedBytes(int $format, string $type, int|float $value, string $expectedHex): void
+    public function testValueIsWrittenAsExpectedBytes(NbtFormat $format, string $type, int|float $value, string $expectedHex): void
     {
         $serializer = new StringWriter()->setFormat($format)->getSerializer();
         $serializer->{"write" . $type}($value);
@@ -96,7 +96,7 @@ class BinaryEncodingTest extends TestCase
      * @throws Exception
      */
     #[DataProvider("encodingProvider")]
-    public function testExpectedBytesAreReadAsValue(int $format, string $type, int|float $value, string $expectedHex): void
+    public function testExpectedBytesAreReadAsValue(NbtFormat $format, string $type, int|float $value, string $expectedHex): void
     {
         $bytes = hex2bin($expectedHex);
         $reader = new StringReader($bytes . "trailing", $format);
@@ -109,7 +109,7 @@ class BinaryEncodingTest extends TestCase
 
     #[TestWith([NbtFormat::JAVA_EDITION, "7fc00000"])]
     #[TestWith([NbtFormat::BEDROCK_EDITION, "0000c07f"])]
-    public function testFloatNanIsReadAsNan(int $format, string $hex): void
+    public function testFloatNanIsReadAsNan(NbtFormat $format, string $hex): void
     {
         $value = new StringReader(hex2bin($hex), $format)->getDeserializer()->readFloat()->getValue();
         $this->assertNan($value);
@@ -117,7 +117,7 @@ class BinaryEncodingTest extends TestCase
 
     #[TestWith([NbtFormat::JAVA_EDITION])]
     #[TestWith([NbtFormat::BEDROCK_EDITION])]
-    public function testDoubleNanSurvivesRoundTrip(int $format): void
+    public function testDoubleNanSurvivesRoundTrip(NbtFormat $format): void
     {
         $writer = new StringWriter()->setFormat($format);
         $writer->getSerializer()->writeDouble(NAN);
@@ -154,7 +154,7 @@ class BinaryEncodingTest extends TestCase
     }
 
     #[DataProvider("truncatedDataProvider")]
-    public function testTruncatedDataIsRejected(int $format, string $type, string $hex): void
+    public function testTruncatedDataIsRejected(NbtFormat $format, string $type, string $hex): void
     {
         $deserializer = new StringReader(hex2bin($hex), $format)->getDeserializer();
 

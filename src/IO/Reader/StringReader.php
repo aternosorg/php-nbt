@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\IO\Reader;
 
+use Aternos\Nbt\NbtFormat;
+
 class StringReader extends AbstractReader
 {
     protected string $data;
     protected int $ptr = 0;
     protected int $length;
 
-    public function __construct(string $data, int $format)
+    public function __construct(string $data, NbtFormat $format)
     {
         $this->format = $format;
         $this->data = $data;
@@ -44,10 +46,7 @@ class StringReader extends AbstractReader
         return $this->ptr;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
+    public function getFormat(): NbtFormat
     {
         return $this->format;
     }

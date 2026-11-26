@@ -166,10 +166,10 @@ class TagManipulationTest extends TestCase
     public function testListInfersContentTypeFromFirstValue(): void
     {
         $list = new ListTag();
-        $this->assertSame(TagType::TAG_End, $list->getContentTag());
+        $this->assertSame(TagType::END, $list->getContentType());
 
         $list[] = new IntTag()->setValue(1);
-        $this->assertSame(TagType::TAG_Int, $list->getContentTag());
+        $this->assertSame(TagType::INT, $list->getContentType());
         $this->assertSame($list, $list[0]->getParentTag());
     }
 
@@ -191,7 +191,7 @@ class TagManipulationTest extends TestCase
     {
         $list = TagFixtures::intList(1);
         $this->expectException(Exception::class);
-        $list->setContentTag(TagType::TAG_String);
+        $list->setContentType(TagType::STRING);
     }
 
     public function testListReplaceAndUnsetUpdateParents(): void
@@ -322,8 +322,8 @@ class TagManipulationTest extends TestCase
     {
         $compound = new CompoundTag()->set("list", TagFixtures::intList(1));
 
-        $this->assertNotNull($compound->getList("list", TagType::TAG_Int));
-        $this->assertNull($compound->getList("list", TagType::TAG_String));
+        $this->assertNotNull($compound->getList("list", TagType::INT));
+        $this->assertNull($compound->getList("list", TagType::STRING));
     }
 
     /**
@@ -414,8 +414,8 @@ class TagManipulationTest extends TestCase
      */
     public function testEmptyListContentTypeCanBeChanged(): void
     {
-        $list = new ListTag()->setContentTag(TagType::TAG_String);
-        $this->assertSame(TagType::TAG_String, $list->getContentTag());
+        $list = new ListTag()->setContentType(TagType::STRING);
+        $this->assertSame(TagType::STRING, $list->getContentType());
     }
 
     public function testValueGetters(): void

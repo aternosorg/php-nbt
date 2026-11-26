@@ -15,41 +15,47 @@ use Aternos\Nbt\Serializer\BedrockEditionNetworkNbtSerializer;
 use Aternos\Nbt\Serializer\JavaEditionNbtSerializer;
 use Aternos\Nbt\Serializer\NbtSerializer;
 
-class NbtFormat
+/**
+ * The three flavors of the NBT format
+ */
+enum NbtFormat
 {
-    public const int JAVA_EDITION = 0;
-    public const int BEDROCK_EDITION = 1;
-    public const int BEDROCK_EDITION_NETWORK = 2;
+    /**
+     * Big endian, strings in Java's modified UTF-8
+     */
+    case JAVA_EDITION;
 
     /**
-     * Find the appropriate deserializer for an NBT format
-     *
-     * @param int $type
-     * @param Reader $reader
-     * @return NbtDeserializer
+     * Little endian, strings in UTF-8
      */
-    public static function getDeserializer(int $type, Reader $reader): NbtDeserializer
+    case BEDROCK_EDITION;
+
+    /**
+     * Little endian with VarInt encoded ints, longs and length prefixes, strings in UTF-8
+     */
+    case BEDROCK_EDITION_NETWORK;
+
+    /**
+     * Create the deserializer for this format
+     */
+    public function createDeserializer(Reader $reader): NbtDeserializer
     {
-        return match ($type) {
-            static::BEDROCK_EDITION => new BedrockEditionNbtDeserializer($reader),
-            static::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtDeserializer($reader),
-            default => new JavaEditionNbtDeserializer($reader),
+        return match ($this) {
+            self::JAVA_EDITION => new JavaEditionNbtDeserializer($reader),
+            self::BEDROCK_EDITION => new BedrockEditionNbtDeserializer($reader),
+            self::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtDeserializer($reader),
         };
     }
 
     /**
-     * Find the appropriate serializer for an NBT format
-     *
-     * @param int $type
-     * @param Writer $writer
-     * @return NbtSerializer
+     * Create the serializer for this format
      */
-    public static function getSerializer(int $type, Writer $writer): NbtSerializer
+    public function createSerializer(Writer $writer): NbtSerializer
     {
-        return match ($type) {
-            static::BEDROCK_EDITION => new BedrockEditionNbtSerializer($writer),
-            static::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtSerializer($writer),
-            default => new JavaEditionNbtSerializer($writer),
+        return match ($this) {
+            self::JAVA_EDITION => new JavaEditionNbtSerializer($writer),
+            self::BEDROCK_EDITION => new BedrockEditionNbtSerializer($writer),
+            self::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtSerializer($writer),
         };
     }
 }

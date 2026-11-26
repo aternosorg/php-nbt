@@ -48,7 +48,7 @@ class RoundTripTest extends TestCase
      * @throws Exception
      */
     #[DataProvider("formatAndCompressionProvider")]
-    public function testEveryTagTypeSurvivesRoundTrip(int $format, string $writerClass, string $readerClass): void
+    public function testEveryTagTypeSurvivesRoundTrip(NbtFormat $format, string $writerClass, string $readerClass): void
     {
         $original = TagFixtures::everyTagType();
 
@@ -74,7 +74,7 @@ class RoundTripTest extends TestCase
     #[TestWith([NbtFormat::JAVA_EDITION], "java")]
     #[TestWith([NbtFormat::BEDROCK_EDITION], "bedrock")]
     #[TestWith([NbtFormat::BEDROCK_EDITION_NETWORK], "bedrock network")]
-    public function testConvertingBetweenFormatsKeepsValues(int $format): void
+    public function testConvertingBetweenFormatsKeepsValues(NbtFormat $format): void
     {
         $original = TagFixtures::everyTagType();
         foreach ([NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, NbtFormat::BEDROCK_EDITION_NETWORK] as $targetFormat) {
@@ -246,7 +246,7 @@ class RoundTripTest extends TestCase
      */
     #[TestWith([NbtFormat::JAVA_EDITION])]
     #[TestWith([NbtFormat::BEDROCK_EDITION])]
-    public function testTagNameAboveMaximumLengthCannotBeWritten(int $format): void
+    public function testTagNameAboveMaximumLengthCannotBeWritten(NbtFormat $format): void
     {
         $root = new CompoundTag()->set(str_repeat("a", 0x10000), new IntTag());
         $this->expectException(Exception::class);
@@ -257,10 +257,12 @@ class RoundTripTest extends TestCase
     #[TestWith([NbtFormat::JAVA_EDITION])]
     #[TestWith([NbtFormat::BEDROCK_EDITION])]
     #[TestWith([NbtFormat::BEDROCK_EDITION_NETWORK])]
-    public function testSerializersAndDeserializersReportTheirFormat(int $format): void
+    public function testSerializersAndDeserializersReportTheirFormat(NbtFormat $format): void
     {
         $this->assertSame($format, new StringReader("", $format)->getDeserializer()->getFormat());
         $this->assertSame($format, new StringWriter()->setFormat($format)->getSerializer()->getFormat());
+        $this->assertSame($format, $format->createDeserializer(new StringReader("", $format))->getFormat());
+        $this->assertSame($format, $format->createSerializer(new StringWriter())->getFormat());
     }
 
     public function testChangingReaderFormatReplacesDeserializer(): void
@@ -295,7 +297,7 @@ class RoundTripTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function writeUncompressed(Tag $tag, int $format): string
+    protected function writeUncompressed(Tag $tag, NbtFormat $format): string
     {
         $writer = new StringWriter()->setFormat($format);
         $tag->write($writer);
@@ -305,7 +307,7 @@ class RoundTripTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function load(string $data, int $format): Tag
+    protected function load(string $data, NbtFormat $format): Tag
     {
         return Tag::load(new StringReader($data, $format));
     }

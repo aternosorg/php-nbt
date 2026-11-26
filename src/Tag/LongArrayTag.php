@@ -11,7 +11,7 @@ class LongArrayTag extends ArrayValueTag
 {
     use RawValueTag;
 
-    public const int TYPE = TagType::TAG_Long_Array;
+    public const TagType TYPE = TagType::LONG_ARRAY;
 
     /**
      * @inheritDoc

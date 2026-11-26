@@ -94,7 +94,7 @@ class ExceptionTest extends TestCase
 
     public function testModifyingRawListThrowsRawTagModificationException(): void
     {
-        $list = new ListTag()->setContentTag(TagType::TAG_Int);
+        $list = new ListTag()->setContentType(TagType::INT);
         $list[] = new IntTag();
         $list[] = new IntTag();
         $writer = new StringWriter();

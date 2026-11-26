@@ -10,7 +10,7 @@ use Aternos\Nbt\IO\Writer\Writer;
 
 class ByteArrayTag extends ArrayValueTag
 {
-    public const int TYPE = TagType::TAG_Byte_Array;
+    public const TagType TYPE = TagType::BYTE_ARRAY;
 
     /**
      * @inheritDoc

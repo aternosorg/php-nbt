@@ -11,10 +11,7 @@ use Aternos\Nbt\IO\Binary;
 
 class BedrockEditionNbtDeserializer extends NbtDeserializer
 {
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
+    public function getFormat(): NbtFormat
     {
         return NbtFormat::BEDROCK_EDITION;
     }
