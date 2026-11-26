@@ -16,8 +16,11 @@ abstract class NbtSerializer
      */
     public const int MAX_STRING_LENGTH = 0xffff;
 
-    public function __construct(public readonly Writer $writer)
+    public readonly Writer $writer;
+
+    public function __construct(Writer $writer)
     {
+        $this->writer = $writer;
     }
 
     abstract public function getFormat(): NbtFormat;

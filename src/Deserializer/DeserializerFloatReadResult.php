@@ -6,8 +6,11 @@ namespace Aternos\Nbt\Deserializer;
 
 final readonly class DeserializerFloatReadResult extends DeserializerReadResult
 {
-    public function __construct(public float $value, string $rawData)
+    public float $value;
+
+    public function __construct(float $value, string $rawData)
     {
         parent::__construct($rawData);
+        $this->value = $value;
     }
 }

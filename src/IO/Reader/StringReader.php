@@ -9,11 +9,13 @@ use Override;
 
 class StringReader extends AbstractReader
 {
+    protected readonly string $data;
     protected int $pointer = 0;
     protected readonly int $length;
 
-    public function __construct(protected readonly string $data, NbtFormat $format)
+    public function __construct(string $data, NbtFormat $format)
     {
+        $this->data = $data;
         $this->format = $format;
         $this->length = strlen($data);
     }

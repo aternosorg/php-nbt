@@ -7,9 +7,15 @@ namespace Aternos\Nbt\Tag;
 final readonly class RawTagReadResult
 {
     /**
-     * @param string $data the complete raw tag including type byte, name and payload
+     * The complete raw tag including type byte, name and payload
      */
-    public function __construct(public string $data, public TagType $tagType)
+    public string $data;
+
+    public TagType $tagType;
+
+    public function __construct(string $data, TagType $tagType)
     {
+        $this->data = $data;
+        $this->tagType = $tagType;
     }
 }

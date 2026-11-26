@@ -10,8 +10,11 @@ use Aternos\Nbt\NbtFormat;
 
 abstract class NbtDeserializer
 {
-    public function __construct(public readonly Reader $reader)
+    public readonly Reader $reader;
+
+    public function __construct(Reader $reader)
     {
+        $this->reader = $reader;
     }
 
     abstract public function getFormat(): NbtFormat;
