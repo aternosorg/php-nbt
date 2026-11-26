@@ -10,7 +10,7 @@ use Exception;
 
 class StringTag extends Tag
 {
-    public const TYPE = TagType::TAG_String;
+    public const int TYPE = TagType::TAG_String;
 
     protected string $value = "";
 

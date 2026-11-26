@@ -13,12 +13,12 @@ use JsonSerializable;
 
 abstract class Tag implements JsonSerializable
 {
-    public const TYPE = -1;
+    public const int TYPE = -1;
 
     /**
      * @var class-string<Tag>[]
      */
-    public const TAGS = [
+    public const array TAGS = [
         TagType::TAG_End => EndTag::class,
         TagType::TAG_Byte => ByteTag::class,
         TagType::TAG_Short => ShortTag::class,

@@ -9,7 +9,7 @@ use Aternos\Nbt\IO\Writer\Writer;
 
 class ShortTag extends IntValueTag
 {
-    public const TYPE = TagType::TAG_Short;
+    public const int TYPE = TagType::TAG_Short;
 
     /**
      * @inheritDoc

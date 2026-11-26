@@ -9,7 +9,7 @@ use Aternos\Nbt\IO\Writer\Writer;
 
 class EndTag extends Tag
 {
-    public const TYPE = TagType::TAG_End;
+    public const int TYPE = TagType::TAG_End;
 
     /**
      * @inheritDoc

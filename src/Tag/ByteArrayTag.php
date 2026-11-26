@@ -10,7 +10,7 @@ use Exception;
 
 class ByteArrayTag extends ArrayValueTag
 {
-    public const TYPE = TagType::TAG_Byte_Array;
+    public const int TYPE = TagType::TAG_Byte_Array;
 
     /**
      * @inheritDoc

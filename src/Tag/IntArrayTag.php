@@ -9,7 +9,7 @@ use Aternos\Nbt\IO\Writer\Writer;
 
 class IntArrayTag extends ArrayValueTag
 {
-    public const TYPE = TagType::TAG_Int_Array;
+    public const int TYPE = TagType::TAG_Int_Array;
 
     /**
      * @inheritDoc
