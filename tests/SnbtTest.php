@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Tests;
 
 use Aternos\Nbt\Tag\StringTag;
-use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class SnbtTest extends TestCase
@@ -25,15 +25,10 @@ class SnbtTest extends TestCase
         );
     }
 
-    public static function stringProvider(): iterable
-    {
-        yield "plain" => ["abc", '"abc"'];
-        yield "double quotes switch to single quotes" => ['say "hi"', "'say \"hi\"'"];
-        yield "both quotes escape double quotes" => ['it\'s "hi"', '"it\'s \"hi\""'];
-        yield "backslash is escaped" => ['a\b', '"a\\\\b"'];
-    }
-
-    #[DataProvider("stringProvider")]
+    #[TestWith(["abc", '"abc"'], "plain")]
+    #[TestWith(['say "hi"', "'say \"hi\"'"], "double quotes switch to single quotes")]
+    #[TestWith(['it\'s "hi"', '"it\'s \"hi\""'], "both quotes escape double quotes")]
+    #[TestWith(['a\b', '"a\\\\b"'], "backslash is escaped")]
     public function testStringQuoting(string $value, string $snbt): void
     {
         $this->assertSame($snbt, new StringTag()->setValue($value)->toSNBT());

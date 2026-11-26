@@ -15,6 +15,7 @@ use Aternos\Nbt\Tag\ListTag;
 use Aternos\Nbt\Tag\Tag;
 use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class RoundTripTest extends TestCase
@@ -36,13 +37,6 @@ class RoundTripTest extends TestCase
                 yield $formatName . ", " . $compressionName => [$format, $writerClass, $readerClass];
             }
         }
-    }
-
-    public static function formatProvider(): iterable
-    {
-        yield "java" => [NbtFormat::JAVA_EDITION];
-        yield "bedrock" => [NbtFormat::BEDROCK_EDITION];
-        yield "bedrock network" => [NbtFormat::BEDROCK_EDITION_NETWORK];
     }
 
     /**
@@ -74,7 +68,9 @@ class RoundTripTest extends TestCase
     /**
      * @throws Exception
      */
-    #[DataProvider("formatProvider")]
+    #[TestWith([NbtFormat::JAVA_EDITION], "java")]
+    #[TestWith([NbtFormat::BEDROCK_EDITION], "bedrock")]
+    #[TestWith([NbtFormat::BEDROCK_EDITION_NETWORK], "bedrock network")]
     public function testConvertingBetweenFormatsKeepsValues(int $format): void
     {
         $original = TagFixtures::everyTagType();

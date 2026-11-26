@@ -5,6 +5,7 @@ namespace Aternos\Nbt\Tests;
 use Aternos\Nbt\String\JavaEncoding;
 use Aternos\Nbt\String\StringDataFormatException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class JavaEncodingTest extends TestCase
@@ -34,16 +35,11 @@ class JavaEncodingTest extends TestCase
         $this->assertSame($utf8, JavaEncoding::getInstance()->decode($javaEncoded));
     }
 
-    public static function invalidDataProvider(): iterable
-    {
-        yield "raw NUL byte" => ["a\0b"];
-        yield "invalid continuation byte" => ["\xC3\x41"];
-        yield "truncated two byte character" => ["\xC3"];
-        yield "invalid lead byte" => ["\xFF"];
-        yield "truncated three byte character" => ["\xE2\x82"];
-    }
-
-    #[DataProvider("invalidDataProvider")]
+    #[TestWith(["a\0b"], "raw NUL byte")]
+    #[TestWith(["\xC3\x41"], "invalid continuation byte")]
+    #[TestWith(["\xC3"], "truncated two byte character")]
+    #[TestWith(["\xFF"], "invalid lead byte")]
+    #[TestWith(["\xE2\x82"], "truncated three byte character")]
     public function testDecodeRejectsInvalidData(string $data): void
     {
         $this->expectException(StringDataFormatException::class);
