@@ -17,18 +17,15 @@ use PHPUnit\Framework\TestCase;
 class RawReadingTest extends TestCase
 {
     /**
-     * A root compound with a "raw" compound that contains every tag type except long arrays,
+     * A root compound with a "raw" compound that contains every tag type,
      * and a "parsed" compound next to it
      *
      * @throws Exception
      */
     protected function createData(int $format): string
     {
-        $raw = TagFixtures::everyTagType();
-        $raw->delete("longArray");
-
         $root = new CompoundTag()
-            ->set("raw", $raw)
+            ->set("raw", TagFixtures::everyTagType())
             ->set("parsed", new CompoundTag()->set("value", new IntTag()->setValue(42)))
             ->set("longList", TagFixtures::intList(1, 2, 3, 4, 5))
             ->set("shortList", TagFixtures::intList(1));
@@ -164,5 +161,59 @@ class RawReadingTest extends TestCase
 
         $this->assertInstanceOf(ListTag::class, $root->getList("longList"));
         $this->assertSame(IntTag::TYPE, $root->getList("longList")->getContentTag());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testRawCompoundEntriesCannotBeRemoved(): void
+    {
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setRawCompoundPaths(["/raw"]));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Raw compound tags cannot be modified");
+        $root->getCompound("raw")->delete("int");
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testRawListEntriesCannotBeRemoved(): void
+    {
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setMaxListTagLength(3));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Raw list tags cannot be modified");
+        unset($root->getList("longList")[0]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testRawListContentTypeCannotBeChanged(): void
+    {
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setMaxListTagLength(3));
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Raw list tags cannot be modified");
+        $root->getList("longList")->setContentTag(IntTag::TYPE);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testRawTagsShowTheirSizeInBytes(): void
+    {
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $options = new TagOptions()->setRawCompoundPaths(["/raw"])->setMaxListTagLength(3);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, $options);
+
+        // 5 ints, the length prefix is not part of the raw content
+        $this->assertSame("TAG_List<TAG_Int>('longList'): 20 bytes", (string)$root->getList("longList"));
+        // e.g. "TAG_Compound('raw'): 213 bytes"
+        $this->assertMatchesRegularExpression("/^TAG_Compound\('raw'\): \d+ bytes$/", (string)$root->getCompound("raw"));
     }
 }
