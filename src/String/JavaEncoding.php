@@ -27,6 +27,7 @@ class JavaEncoding
      * @param string $string
      * @param string $sourceEncoding
      * @return string
+     * @throws StringDataFormatException if $string is not valid in $sourceEncoding
      */
     public function encode(string $string, string $sourceEncoding = "UTF-8"): string
     {
@@ -35,6 +36,9 @@ class JavaEncoding
         $chars = mb_str_split($string, 1, $sourceEncoding);
         foreach ($chars as $char) {
             $c = mb_ord($char, $sourceEncoding);
+            if ($c === false) {
+                throw new StringDataFormatException("Invalid " . $sourceEncoding . " character 0x" . bin2hex($char) . " in string");
+            }
 
             if($c === 0) {
                 $result .= "\xC0\x80";
