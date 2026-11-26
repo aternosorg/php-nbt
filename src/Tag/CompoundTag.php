@@ -44,9 +44,10 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
         $writtenNames = [];
         foreach ($this->valueArray as $value) {
-            if (in_array($value->getName(), $writtenNames)) {
+            if (in_array($value->getName(), $writtenNames, true)) {
                 throw new Exception("Duplicate key '" . $value->getName() . "' in compound tag");
             }
+            $writtenNames[] = $value->getName();
             $value->writeData($writer);
         }
         (new EndTag($this->options))->writeData($writer);
