@@ -10,6 +10,8 @@ use Aternos\Nbt\IO\Writer\Writer;
 class ShortTag extends IntValueTag
 {
     public const TagType TYPE = TagType::SHORT;
+    public const int MIN_VALUE = -0x8000;
+    public const int MAX_VALUE = 0x7fff;
 
     /**
      * @inheritDoc

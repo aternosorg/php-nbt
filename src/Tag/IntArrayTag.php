@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 
@@ -52,6 +53,17 @@ class IntArrayTag extends ArrayValueTag
     protected function checkArrayValue($value): bool
     {
         return is_int($value);
+    }
+
+    /**
+     * @throws InvalidTagValueException if $value is an int outside the range of IntTag
+     */
+    public function offsetSet($offset, $value): void
+    {
+        if (is_int($value)) {
+            IntTag::checkValueRange($value, $this->getType());
+        }
+        parent::offsetSet($offset, $value);
     }
 
     /**
