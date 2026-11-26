@@ -66,7 +66,7 @@ class RawReadingTest extends TestCase
      */
     public function testRawCompoundPathsAreKeptAsRawBytes(): void
     {
-        foreach ([NbtFormat::JavaEdition, NbtFormat::BedrockEdition, NbtFormat::BedrockEditionNetwork] as $format) {
+        foreach ([NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, NbtFormat::BEDROCK_EDITION_NETWORK] as $format) {
             $data = $this->createData($format);
             $options = new TagOptions()->setRawCompoundPaths(["/raw"]);
             $root = $this->load($data, $format, $options);
@@ -83,14 +83,14 @@ class RawReadingTest extends TestCase
      */
     public function testParsedCompoundPathsReadEverythingElseRaw(): void
     {
-        $data = $this->createData(NbtFormat::JavaEdition);
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
         $options = new TagOptions()->setParsedCompoundPaths(["/parsed"]);
-        $root = $this->load($data, NbtFormat::JavaEdition, $options);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, $options);
 
         $this->assertTrue($root->getCompound("raw")?->isRaw());
         $this->assertFalse($root->getCompound("parsed")?->isRaw());
         $this->assertSame(42, $root->getCompound("parsed")->getInt("value")?->getValue());
-        $this->assertSame($data, $this->write($root, NbtFormat::JavaEdition));
+        $this->assertSame($data, $this->write($root, NbtFormat::JAVA_EDITION));
     }
 
     /**
@@ -98,7 +98,7 @@ class RawReadingTest extends TestCase
      */
     public function testListsAboveMaxLengthAreKeptAsRawBytes(): void
     {
-        foreach ([NbtFormat::JavaEdition, NbtFormat::BedrockEdition, NbtFormat::BedrockEditionNetwork] as $format) {
+        foreach ([NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, NbtFormat::BEDROCK_EDITION_NETWORK] as $format) {
             $data = $this->createData($format);
             $options = new TagOptions()->setMaxListTagLength(3);
             $root = $this->load($data, $format, $options);
@@ -114,8 +114,8 @@ class RawReadingTest extends TestCase
      */
     public function testRawCompoundCannotBeModified(): void
     {
-        $data = $this->createData(NbtFormat::JavaEdition);
-        $root = $this->load($data, NbtFormat::JavaEdition, new TagOptions()->setRawCompoundPaths(["/raw"]));
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setRawCompoundPaths(["/raw"]));
 
         $this->expectException(RawTagModificationException::class);
         $root->getCompound("raw")?->set("new", new StringTag()->setValue("value"));
@@ -126,11 +126,11 @@ class RawReadingTest extends TestCase
      */
     public function testRawCompoundCannotChangeFormat(): void
     {
-        $data = $this->createData(NbtFormat::JavaEdition);
-        $root = $this->load($data, NbtFormat::JavaEdition, new TagOptions()->setRawCompoundPaths(["/raw"]));
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setRawCompoundPaths(["/raw"]));
 
         $this->expectException(RawTagModificationException::class);
-        $this->write($root, NbtFormat::BedrockEdition);
+        $this->write($root, NbtFormat::BEDROCK_EDITION);
     }
 
     /**
@@ -138,8 +138,8 @@ class RawReadingTest extends TestCase
      */
     public function testRawListCannotBeModified(): void
     {
-        $data = $this->createData(NbtFormat::JavaEdition);
-        $root = $this->load($data, NbtFormat::JavaEdition, new TagOptions()->setMaxListTagLength(3));
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setMaxListTagLength(3));
 
         $list = $root->getList("longList");
         $this->assertNotNull($list);
@@ -152,11 +152,11 @@ class RawReadingTest extends TestCase
      */
     public function testRawListCannotChangeFormat(): void
     {
-        $data = $this->createData(NbtFormat::JavaEdition);
-        $root = $this->load($data, NbtFormat::JavaEdition, new TagOptions()->setMaxListTagLength(3));
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setMaxListTagLength(3));
 
         $this->expectException(RawTagModificationException::class);
-        $this->write($root, NbtFormat::BedrockEdition);
+        $this->write($root, NbtFormat::BEDROCK_EDITION);
     }
 
     /**
@@ -164,8 +164,8 @@ class RawReadingTest extends TestCase
      */
     public function testRawListKeepsContentType(): void
     {
-        $data = $this->createData(NbtFormat::JavaEdition);
-        $root = $this->load($data, NbtFormat::JavaEdition, new TagOptions()->setMaxListTagLength(3));
+        $data = $this->createData(NbtFormat::JAVA_EDITION);
+        $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setMaxListTagLength(3));
 
         $this->assertInstanceOf(ListTag::class, $root->getList("longList"));
         $this->assertSame(IntTag::TYPE, $root->getList("longList")->getContentType());

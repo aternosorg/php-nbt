@@ -10,7 +10,7 @@ use Override;
 
 class StringTag extends Tag
 {
-    public const TagType TYPE = TagType::String;
+    public const TagType TYPE = TagType::STRING;
 
     protected string $value = "";
 

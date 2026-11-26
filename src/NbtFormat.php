@@ -23,33 +23,33 @@ enum NbtFormat
     /**
      * Big endian, strings in Java's modified UTF-8
      */
-    case JavaEdition;
+    case JAVA_EDITION;
 
     /**
      * Little endian, strings in UTF-8
      */
-    case BedrockEdition;
+    case BEDROCK_EDITION;
 
     /**
      * Little endian with VarInt encoded ints, longs and length prefixes, strings in UTF-8
      */
-    case BedrockEditionNetwork;
+    case BEDROCK_EDITION_NETWORK;
 
     public function createDeserializer(Reader $reader): NbtDeserializer
     {
         return match ($this) {
-            self::JavaEdition => new JavaEditionNbtDeserializer($reader),
-            self::BedrockEdition => new BedrockEditionNbtDeserializer($reader),
-            self::BedrockEditionNetwork => new BedrockEditionNetworkNbtDeserializer($reader),
+            self::JAVA_EDITION => new JavaEditionNbtDeserializer($reader),
+            self::BEDROCK_EDITION => new BedrockEditionNbtDeserializer($reader),
+            self::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtDeserializer($reader),
         };
     }
 
     public function createSerializer(Writer $writer): NbtSerializer
     {
         return match ($this) {
-            self::JavaEdition => new JavaEditionNbtSerializer($writer),
-            self::BedrockEdition => new BedrockEditionNbtSerializer($writer),
-            self::BedrockEditionNetwork => new BedrockEditionNetworkNbtSerializer($writer),
+            self::JAVA_EDITION => new JavaEditionNbtSerializer($writer),
+            self::BEDROCK_EDITION => new BedrockEditionNbtSerializer($writer),
+            self::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtSerializer($writer),
         };
     }
 
@@ -58,6 +58,6 @@ enum NbtFormat
      */
     public function allowsListAsRoot(): bool
     {
-        return $this !== self::JavaEdition;
+        return $this !== self::JAVA_EDITION;
     }
 }

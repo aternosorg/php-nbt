@@ -14,7 +14,7 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
     #[Override]
     public function getFormat(): NbtFormat
     {
-        return NbtFormat::JavaEdition;
+        return NbtFormat::JAVA_EDITION;
     }
 
     #[Override]

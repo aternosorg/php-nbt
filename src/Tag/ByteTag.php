@@ -11,7 +11,7 @@ use Override;
 
 class ByteTag extends IntValueTag
 {
-    public const TagType TYPE = TagType::Byte;
+    public const TagType TYPE = TagType::BYTE;
     public const int MIN_VALUE = -0x80;
     public const int MAX_VALUE = 0x7f;
 

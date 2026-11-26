@@ -24,7 +24,7 @@ use Override;
  */
 class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countable
 {
-    public const TagType TYPE = TagType::Compound;
+    public const TagType TYPE = TagType::COMPOUND;
 
     /**
      * Children are looked up by their current name, so renaming a child with setName() also changes its key
@@ -104,7 +104,7 @@ class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countab
         do {
             $tag = Tag::loadRaw($reader, $options);
             $result .= $tag->data;
-        } while ($tag->tagType !== TagType::End);
+        } while ($tag->tagType !== TagType::END);
         return $result;
     }
 

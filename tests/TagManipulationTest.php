@@ -112,10 +112,10 @@ class TagManipulationTest extends TestCase
     public function testListInfersContentTypeFromFirstValue(): void
     {
         $list = new ListTag();
-        $this->assertSame(TagType::End, $list->getContentType());
+        $this->assertSame(TagType::END, $list->getContentType());
 
         $list[] = new IntTag()->setValue(1);
-        $this->assertSame(TagType::Int, $list->getContentType());
+        $this->assertSame(TagType::INT, $list->getContentType());
         $this->assertSame($list, $list[0]?->getParentTag());
     }
 
@@ -130,7 +130,7 @@ class TagManipulationTest extends TestCase
     {
         $list = TagFixtures::intList(1);
         $this->expectException(InvalidTagValueException::class);
-        $list->setContentType(TagType::String);
+        $list->setContentType(TagType::STRING);
     }
 
     /**
@@ -279,7 +279,7 @@ class TagManipulationTest extends TestCase
      */
     public function testListContainingItselfCannotBeWritten(): void
     {
-        $list = new ListTag()->setContentType(TagType::List);
+        $list = new ListTag()->setContentType(TagType::LIST);
         $list[] = $list;
         $root = new CompoundTag()->set("list", $list);
 
@@ -311,12 +311,12 @@ class TagManipulationTest extends TestCase
         // 0x8000 NUL characters take two bytes each in Java's modified UTF-8
         $root = new CompoundTag()->set("nul", new StringTag()->setValue(str_repeat("\0", 0x8000)));
 
-        $writer = new StringWriter()->setFormat(NbtFormat::BedrockEdition);
+        $writer = new StringWriter()->setFormat(NbtFormat::BEDROCK_EDITION);
         $root->write($writer);
         $this->assertNotSame("", $writer->getStringData());
 
         $this->expectException(InvalidTagValueException::class);
-        $root->write(new StringWriter()->setFormat(NbtFormat::JavaEdition));
+        $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
     }
 
     /**

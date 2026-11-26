@@ -11,7 +11,7 @@ use Override;
 
 class LongArrayTag extends NumberArrayTag
 {
-    public const TagType TYPE = TagType::LongArray;
+    public const TagType TYPE = TagType::LONG_ARRAY;
 
     #[Override]
     public function getType(): TagType

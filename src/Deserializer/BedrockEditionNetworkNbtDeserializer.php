@@ -23,7 +23,7 @@ class BedrockEditionNetworkNbtDeserializer extends BedrockEditionNbtDeserializer
     #[Override]
     public function getFormat(): NbtFormat
     {
-        return NbtFormat::BedrockEditionNetwork;
+        return NbtFormat::BEDROCK_EDITION_NETWORK;
     }
 
     #[Override]

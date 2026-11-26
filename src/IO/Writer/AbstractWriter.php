@@ -10,7 +10,7 @@ use Override;
 
 abstract class AbstractWriter implements Writer
 {
-    protected NbtFormat $format = NbtFormat::JavaEdition;
+    protected NbtFormat $format = NbtFormat::JAVA_EDITION;
     protected ?NbtSerializer $serializer = null;
 
     #[Override]

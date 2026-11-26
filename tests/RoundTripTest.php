@@ -32,9 +32,9 @@ class RoundTripTest extends TestCase
     public static function formatAndCompressionProvider(): iterable
     {
         $formats = [
-            "java" => NbtFormat::JavaEdition,
-            "bedrock" => NbtFormat::BedrockEdition,
-            "bedrock network" => NbtFormat::BedrockEditionNetwork,
+            "java" => NbtFormat::JAVA_EDITION,
+            "bedrock" => NbtFormat::BEDROCK_EDITION,
+            "bedrock network" => NbtFormat::BEDROCK_EDITION_NETWORK,
         ];
         $compressions = [
             "uncompressed" => [StringWriter::class, StringReader::class],
@@ -77,13 +77,13 @@ class RoundTripTest extends TestCase
     /**
      * @throws Exception
      */
-    #[TestWith([NbtFormat::JavaEdition], "java")]
-    #[TestWith([NbtFormat::BedrockEdition], "bedrock")]
-    #[TestWith([NbtFormat::BedrockEditionNetwork], "bedrock network")]
+    #[TestWith([NbtFormat::JAVA_EDITION], "java")]
+    #[TestWith([NbtFormat::BEDROCK_EDITION], "bedrock")]
+    #[TestWith([NbtFormat::BEDROCK_EDITION_NETWORK], "bedrock network")]
     public function testConvertingBetweenFormatsKeepsValues(NbtFormat $format): void
     {
         $original = TagFixtures::everyTagType();
-        foreach ([NbtFormat::JavaEdition, NbtFormat::BedrockEdition, NbtFormat::BedrockEditionNetwork] as $targetFormat) {
+        foreach ([NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, NbtFormat::BEDROCK_EDITION_NETWORK] as $targetFormat) {
             $loaded = $this->load($this->writeUncompressed($original, $format), $format);
             $converted = $this->load($this->writeUncompressed($loaded, $targetFormat), $targetFormat);
             $this->assertTrue($original->equals($converted));
@@ -102,7 +102,7 @@ class RoundTripTest extends TestCase
             "\x0a\x00\x00" .
             "\x03\x00\x01a\x00\x00\x00\x01" .
             "\x00",
-            $this->writeUncompressed($root, NbtFormat::JavaEdition)
+            $this->writeUncompressed($root, NbtFormat::JAVA_EDITION)
         );
     }
 
@@ -118,7 +118,7 @@ class RoundTripTest extends TestCase
             "\x0a\x00\x00" .
             "\x03\x01\x00a\x01\x00\x00\x00" .
             "\x00",
-            $this->writeUncompressed($root, NbtFormat::BedrockEdition)
+            $this->writeUncompressed($root, NbtFormat::BEDROCK_EDITION)
         );
     }
 
@@ -135,7 +135,7 @@ class RoundTripTest extends TestCase
             "\x0a\x00" .
             "\x03\x01a\x01" .
             "\x00",
-            $this->writeUncompressed($root, NbtFormat::BedrockEditionNetwork)
+            $this->writeUncompressed($root, NbtFormat::BEDROCK_EDITION_NETWORK)
         );
     }
 
@@ -145,8 +145,8 @@ class RoundTripTest extends TestCase
     public function testBedrockEditionAllowsListAsRoot(): void
     {
         $list = TagFixtures::intList(1, 2, 3);
-        $data = $this->writeUncompressed($list, NbtFormat::BedrockEdition);
-        $loaded = $this->load($data, NbtFormat::BedrockEdition);
+        $data = $this->writeUncompressed($list, NbtFormat::BEDROCK_EDITION);
+        $loaded = $this->load($data, NbtFormat::BEDROCK_EDITION);
 
         $this->assertInstanceOf(ListTag::class, $loaded);
         $this->assertTrue($list->equals($loaded));
@@ -155,32 +155,32 @@ class RoundTripTest extends TestCase
     public function testJavaEditionRejectsListAsRoot(): void
     {
         $this->expectException(InvalidTagValueException::class);
-        $this->writeUncompressed(TagFixtures::intList(1), NbtFormat::JavaEdition);
+        $this->writeUncompressed(TagFixtures::intList(1), NbtFormat::JAVA_EDITION);
     }
 
     public function testInvalidGZipDataIsRejected(): void
     {
         $this->expectException(CompressionException::class);
-        new GZipCompressedStringReader("not gzip", NbtFormat::JavaEdition);
+        new GZipCompressedStringReader("not gzip", NbtFormat::JAVA_EDITION);
     }
 
     public function testInvalidZLibDataIsRejected(): void
     {
         $this->expectException(CompressionException::class);
-        new ZLibCompressedStringReader("not zlib", NbtFormat::JavaEdition);
+        new ZLibCompressedStringReader("not zlib", NbtFormat::JAVA_EDITION);
     }
 
     public function testUnknownTagTypeIsRejected(): void
     {
         $this->expectException(UnknownTagTypeException::class);
-        $this->load("\x0d\x00\x00", NbtFormat::JavaEdition);
+        $this->load("\x0d\x00\x00", NbtFormat::JAVA_EDITION);
     }
 
     public function testTruncatedStringIsRejected(): void
     {
         $this->expectException(StringDataFormatException::class);
         // compound named with a declared length of 5, but only 2 bytes follow
-        $this->load("\x0a\x00\x05ab", NbtFormat::JavaEdition);
+        $this->load("\x0a\x00\x05ab", NbtFormat::JAVA_EDITION);
     }
 
     /**

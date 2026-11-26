@@ -32,7 +32,7 @@ class RegressionTest extends TestCase
             ->set("raw", new CompoundTag()->set("longs", $longArray))
             ->set("after", new IntTag()->setValue(42));
 
-        foreach ([NbtFormat::JavaEdition, NbtFormat::BedrockEdition, NbtFormat::BedrockEditionNetwork] as $format) {
+        foreach ([NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, NbtFormat::BEDROCK_EDITION_NETWORK] as $format) {
             $writer = new StringWriter()->setFormat($format);
             $root->write($writer);
             $data = $writer->getStringData();
@@ -61,7 +61,7 @@ class RegressionTest extends TestCase
 
         $this->expectException(InvalidTagValueException::class);
         $this->expectExceptionMessage("Duplicate key 'a'");
-        $root->write(new StringWriter()->setFormat(NbtFormat::JavaEdition));
+        $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
     }
 
     public function testByteArrayStringShowsBytesAsTwoHexDigits(): void

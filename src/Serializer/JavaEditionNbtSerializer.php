@@ -14,7 +14,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
     #[Override]
     public function getFormat(): NbtFormat
     {
-        return NbtFormat::JavaEdition;
+        return NbtFormat::JAVA_EDITION;
     }
 
     #[Override]

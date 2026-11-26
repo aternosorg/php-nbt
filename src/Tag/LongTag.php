@@ -11,7 +11,7 @@ use Override;
 
 class LongTag extends IntValueTag
 {
-    public const TagType TYPE = TagType::Long;
+    public const TagType TYPE = TagType::LONG;
 
     #[Override]
     public function getType(): TagType

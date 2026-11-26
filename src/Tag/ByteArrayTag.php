@@ -11,7 +11,7 @@ use Override;
 
 class ByteArrayTag extends NumberArrayTag
 {
-    public const TagType TYPE = TagType::ByteArray;
+    public const TagType TYPE = TagType::BYTE_ARRAY;
 
     #[Override]
     public function getType(): TagType

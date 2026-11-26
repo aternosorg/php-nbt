@@ -9,19 +9,19 @@ namespace Aternos\Nbt\Tag;
  */
 enum TagType: int
 {
-    case End = 0;
-    case Byte = 1;
-    case Short = 2;
-    case Int = 3;
-    case Long = 4;
-    case Float = 5;
-    case Double = 6;
-    case ByteArray = 7;
-    case String = 8;
-    case List = 9;
-    case Compound = 10;
-    case IntArray = 11;
-    case LongArray = 12;
+    case END = 0;
+    case BYTE = 1;
+    case SHORT = 2;
+    case INT = 3;
+    case LONG = 4;
+    case FLOAT = 5;
+    case DOUBLE = 6;
+    case BYTE_ARRAY = 7;
+    case STRING = 8;
+    case LIST = 9;
+    case COMPOUND = 10;
+    case INT_ARRAY = 11;
+    case LONG_ARRAY = 12;
 
     /**
      * Name of the tag type as used in the NBT specification, e.g. "TAG_Byte_Array"
@@ -29,19 +29,19 @@ enum TagType: int
     public function getName(): string
     {
         return match ($this) {
-            self::End => "TAG_End",
-            self::Byte => "TAG_Byte",
-            self::Short => "TAG_Short",
-            self::Int => "TAG_Int",
-            self::Long => "TAG_Long",
-            self::Float => "TAG_Float",
-            self::Double => "TAG_Double",
-            self::ByteArray => "TAG_Byte_Array",
-            self::String => "TAG_String",
-            self::List => "TAG_List",
-            self::Compound => "TAG_Compound",
-            self::IntArray => "TAG_Int_Array",
-            self::LongArray => "TAG_Long_Array",
+            self::END => "TAG_End",
+            self::BYTE => "TAG_Byte",
+            self::SHORT => "TAG_Short",
+            self::INT => "TAG_Int",
+            self::LONG => "TAG_Long",
+            self::FLOAT => "TAG_Float",
+            self::DOUBLE => "TAG_Double",
+            self::BYTE_ARRAY => "TAG_Byte_Array",
+            self::STRING => "TAG_String",
+            self::LIST => "TAG_List",
+            self::COMPOUND => "TAG_Compound",
+            self::INT_ARRAY => "TAG_Int_Array",
+            self::LONG_ARRAY => "TAG_Long_Array",
         };
     }
 
@@ -51,19 +51,19 @@ enum TagType: int
     public function getTagClass(): string
     {
         return match ($this) {
-            self::End => EndTag::class,
-            self::Byte => ByteTag::class,
-            self::Short => ShortTag::class,
-            self::Int => IntTag::class,
-            self::Long => LongTag::class,
-            self::Float => FloatTag::class,
-            self::Double => DoubleTag::class,
-            self::ByteArray => ByteArrayTag::class,
-            self::String => StringTag::class,
-            self::List => ListTag::class,
-            self::Compound => CompoundTag::class,
-            self::IntArray => IntArrayTag::class,
-            self::LongArray => LongArrayTag::class,
+            self::END => EndTag::class,
+            self::BYTE => ByteTag::class,
+            self::SHORT => ShortTag::class,
+            self::INT => IntTag::class,
+            self::LONG => LongTag::class,
+            self::FLOAT => FloatTag::class,
+            self::DOUBLE => DoubleTag::class,
+            self::BYTE_ARRAY => ByteArrayTag::class,
+            self::STRING => StringTag::class,
+            self::LIST => ListTag::class,
+            self::COMPOUND => CompoundTag::class,
+            self::INT_ARRAY => IntArrayTag::class,
+            self::LONG_ARRAY => LongArrayTag::class,
         };
     }
 

@@ -20,22 +20,22 @@ To read existing NBT data, a Reader object is required.
 This library implements different readers to read NBT data from strings.
 ```php
 //Read uncompressed NBT data
-$reader = new \Aternos\Nbt\IO\Reader\StringReader("...nbtData...", \Aternos\Nbt\NbtFormat::BedrockEdition);
+$reader = new \Aternos\Nbt\IO\Reader\StringReader("...nbtData...", \Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 //Read gzip compressed NBT data
-$gzipReader = new \Aternos\Nbt\IO\Reader\GZipCompressedStringReader("...compressedNbtData...", \Aternos\Nbt\NbtFormat::JavaEdition);
+$gzipReader = new \Aternos\Nbt\IO\Reader\GZipCompressedStringReader("...compressedNbtData...", \Aternos\Nbt\NbtFormat::JAVA_EDITION);
 
 //Read zlib compressed NBT data
-$zlibReader = new \Aternos\Nbt\IO\Reader\ZLibCompressedStringReader("...compressedNbtData...", \Aternos\Nbt\NbtFormat::BedrockEditionNetwork);
+$zlibReader = new \Aternos\Nbt\IO\Reader\ZLibCompressedStringReader("...compressedNbtData...", \Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
 ```
 Note that the reader object is also used to specify the NBT format flavor. 
-`\Aternos\Nbt\NbtFormat` is an enum with the cases `JavaEdition`, `BedrockEdition`, and `BedrockEditionNetwork`.
+`\Aternos\Nbt\NbtFormat` is an enum with the cases `JAVA_EDITION`, `BEDROCK_EDITION`, and `BEDROCK_EDITION_NETWORK`.
 
 More advanced readers can be created by implementing the `\Aternos\Nbt\IO\Reader\Reader` interface or by extending the `\Aternos\Nbt\IO\Reader\AbstractReader` class.
 
 A reader object can be used to load the NBT tag.
 ```php
-$reader = new \Aternos\Nbt\IO\Reader\StringReader("...nbtData...", \Aternos\Nbt\NbtFormat::BedrockEdition);
+$reader = new \Aternos\Nbt\IO\Reader\StringReader("...nbtData...", \Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 $tag = \Aternos\Nbt\Tag\Tag::load($reader);
 ```
@@ -71,7 +71,7 @@ echo count($myCompound); // 2
 
 //Manually setting a list's type is not strictly necessary,
 //since its type will be set automatically when the first element is added
-$myList = new \Aternos\Nbt\Tag\ListTag()->setContentType(\Aternos\Nbt\Tag\TagType::String);
+$myList = new \Aternos\Nbt\Tag\ListTag()->setContentType(\Aternos\Nbt\Tag\TagType::STRING);
 
 $myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("Hello");
 $myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("World");
@@ -100,13 +100,13 @@ Similar to the reader object to read NBT data, a writer object is required
 to write NBT data.
 ```php
 //Write uncompressed NBT data
-$writer = new \Aternos\Nbt\IO\Writer\StringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BedrockEdition);
+$writer = new \Aternos\Nbt\IO\Writer\StringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 //Write gzip compressed NBT data
-$gzipWriter = new \Aternos\Nbt\IO\Writer\GZipCompressedStringWriter()->setFormat(\Aternos\Nbt\NbtFormat::JavaEdition);
+$gzipWriter = new \Aternos\Nbt\IO\Writer\GZipCompressedStringWriter()->setFormat(\Aternos\Nbt\NbtFormat::JAVA_EDITION);
 
 //Write zlib compressed NBT data
-$zlibWriter = new \Aternos\Nbt\IO\Writer\ZLibCompressedStringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BedrockEditionNetwork);
+$zlibWriter = new \Aternos\Nbt\IO\Writer\ZLibCompressedStringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
 ```
 The NBT flavor used by a writer object can differ from the one used by the 
 reader object that was originally used to read the NBT structure.
@@ -116,7 +116,7 @@ More advanced writers can be created by implementing the `\Aternos\Nbt\IO\Writer
 
 A writer object can be used to write/serialize an NBT structure.
 ```php
-$writer = new \Aternos\Nbt\IO\Writer\StringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BedrockEdition);
+$writer = new \Aternos\Nbt\IO\Writer\StringWriter()->setFormat(\Aternos\Nbt\NbtFormat::BEDROCK_EDITION);
 
 $tag->write($writer);
 file_put_contents("data.nbt", $writer->getStringData());
@@ -141,16 +141,17 @@ $dataLength = unpack("V", $data, 4)[1];
 if($dataLength !== strlen($data) - 8) {
     throw new Exception("Invalid level.dat data length");
 }
-$tag = \Aternos\Nbt\Tag\Tag::load(new \Aternos\Nbt\IO\Reader\StringReader(substr($data, 8), \Aternos\Nbt\NbtFormat::BedrockEdition));
+$tag = \Aternos\Nbt\Tag\Tag::load(new \Aternos\Nbt\IO\Reader\StringReader(substr($data, 8), \Aternos\Nbt\NbtFormat::BEDROCK_EDITION));
 ```
 
 ## Upgrading from 1.x
 Version 2 uses PHP 8.4 features and contains these breaking changes:
 
-- `NbtFormat` is an enum: `NbtFormat::JAVA_EDITION` is now `NbtFormat::JavaEdition`, `BEDROCK_EDITION` is `BedrockEdition`, and `BEDROCK_EDITION_NETWORK` is `BedrockEditionNetwork`.
+- `NbtFormat` is an enum instead of a class with int constants.
+  The case names are the same as the old constant names (`NbtFormat::JAVA_EDITION` etc.).
   All `getFormat()`/`setFormat()` methods and reader constructors use the enum instead of `int`.
   `NbtFormat::getDeserializer()`/`getSerializer()` are replaced by `$format->createDeserializer()`/`createSerializer()`.
-- `TagType` is an int-backed enum: `TagType::TAG_Byte_Array` is now `TagType::ByteArray` etc.
+- `TagType` is an int-backed enum: `TagType::TAG_Byte_Array` is now `TagType::BYTE_ARRAY` etc.
   `Tag::TYPE` constants and `getType()` return `TagType`, `TagType::NAMES` is replaced by `$type->getName()`, and `Tag::TAGS`/`Tag::getTagClass()` by `$type->getTagClass()`.
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
 - All exceptions extend `Aternos\Nbt\Exception\NbtException` with specific subclasses (`InvalidTagValueException`, `RawTagModificationException`, `UnknownTagTypeException`, `CompressionException`, `CircularStructureException`).

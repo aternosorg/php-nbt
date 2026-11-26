@@ -11,7 +11,7 @@ use Override;
 
 class DoubleTag extends FloatValueTag
 {
-    public const TagType TYPE = TagType::Double;
+    public const TagType TYPE = TagType::DOUBLE;
 
     #[Override]
     public function getType(): TagType

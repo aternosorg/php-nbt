@@ -13,7 +13,7 @@ use Override;
  */
 class EndTag extends Tag
 {
-    public const TagType TYPE = TagType::End;
+    public const TagType TYPE = TagType::END;
 
     #[Override]
     public function getType(): TagType

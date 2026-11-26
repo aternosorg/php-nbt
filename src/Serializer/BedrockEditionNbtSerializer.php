@@ -13,7 +13,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
     #[Override]
     public function getFormat(): NbtFormat
     {
-        return NbtFormat::BedrockEdition;
+        return NbtFormat::BEDROCK_EDITION;
     }
 
     #[Override]

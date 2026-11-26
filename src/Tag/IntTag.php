@@ -11,7 +11,7 @@ use Override;
 
 class IntTag extends IntValueTag
 {
-    public const TagType TYPE = TagType::Int;
+    public const TagType TYPE = TagType::INT;
     public const int MIN_VALUE = -0x80000000;
     public const int MAX_VALUE = 0x7fffffff;
 

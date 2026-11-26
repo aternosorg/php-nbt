@@ -11,7 +11,7 @@ use Override;
 
 class IntArrayTag extends NumberArrayTag
 {
-    public const TagType TYPE = TagType::IntArray;
+    public const TagType TYPE = TagType::INT_ARRAY;
 
     #[Override]
     public function getType(): TagType

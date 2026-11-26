@@ -20,12 +20,12 @@ use Override;
  */
 class ListTag extends ArrayValueTag
 {
-    public const TagType TYPE = TagType::List;
+    public const TagType TYPE = TagType::LIST;
 
     /**
-     * Type of the list entries, TagType::End for an empty list without a type
+     * Type of the list entries, TagType::END for an empty list without a type
      */
-    protected TagType $contentType = TagType::End;
+    protected TagType $contentType = TagType::END;
 
     protected ?int $rawContentLength = null;
     protected ?string $rawContent = null;
@@ -168,7 +168,7 @@ class ListTag extends ArrayValueTag
         if (!$value instanceof Tag) {
             return false;
         }
-        if ($this->contentType === TagType::End && $this->count() === 0) {
+        if ($this->contentType === TagType::END && $this->count() === 0) {
             return !$value instanceof EndTag;
         }
         return $value->getType() === $this->contentType;
@@ -184,7 +184,7 @@ class ListTag extends ArrayValueTag
         $this->assertNotRaw();
         $previousValue = is_int($offset) ? $this->valueArray[$offset] ?? null : null;
         parent::offsetSet($offset, $value);
-        if ($this->contentType === TagType::End) {
+        if ($this->contentType === TagType::END) {
             $this->contentType = $value->getType();
         }
         $previousValue?->setParentTag(null);
