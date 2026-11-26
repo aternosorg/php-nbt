@@ -45,4 +45,14 @@ class JavaEncodingTest extends TestCase
         $this->expectException(StringDataFormatException::class);
         JavaEncoding::getInstance()->decode($data);
     }
+
+    #[TestWith(["a\xFFb"], "invalid lead byte")]
+    #[TestWith(["a\xC3"], "truncated two byte character")]
+    #[TestWith(["\xED\xA0\x80"], "UTF-8 encoded surrogate")]
+    public function testEncodeRejectsInvalidData(string $data): void
+    {
+        $this->expectException(StringDataFormatException::class);
+        $this->expectExceptionMessage("Invalid UTF-8 character");
+        JavaEncoding::getInstance()->encode($data);
+    }
 }
