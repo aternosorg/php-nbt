@@ -199,7 +199,11 @@ class ListTag extends ArrayValueTag
         }
 
         /** @var Tag|null $previousValue */
-        $previousValue = $this->valueArray[$offset] ?? null;
+        $previousValue = null;
+        // $offset is null when appending ($list[] = $tag), and null array keys are deprecated since PHP 8.5
+        if ($offset !== null) {
+            $previousValue = $this->valueArray[$offset] ?? null;
+        }
         parent::offsetSet($offset, $value);
         $value->setParentTag($this);
         $previousValue?->setParentTag(null);
