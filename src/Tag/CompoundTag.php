@@ -13,7 +13,7 @@ use Iterator;
 
 class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 {
-    public const TYPE = TagType::TAG_Compound;
+    public const int TYPE = TagType::TAG_Compound;
 
     /**
      * @var Tag[]

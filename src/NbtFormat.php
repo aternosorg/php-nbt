@@ -17,9 +17,9 @@ use Aternos\Nbt\Serializer\NbtSerializer;
 
 class NbtFormat
 {
-    const JAVA_EDITION = 0;
-    const BEDROCK_EDITION = 1;
-    const BEDROCK_EDITION_NETWORK = 2;
+    public const int JAVA_EDITION = 0;
+    public const int BEDROCK_EDITION = 1;
+    public const int BEDROCK_EDITION_NETWORK = 2;
 
     /**
      * Find the appropriate deserializer for an NBT format

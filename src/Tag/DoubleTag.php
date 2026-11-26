@@ -11,7 +11,7 @@ class DoubleTag extends FloatValueTag
 {
     use RawValueTag;
 
-    public const TYPE = TagType::TAG_Double;
+    public const int TYPE = TagType::TAG_Double;
 
     /**
      * @inheritDoc

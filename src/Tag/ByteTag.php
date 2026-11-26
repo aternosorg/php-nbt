@@ -9,7 +9,7 @@ use Aternos\Nbt\IO\Writer\Writer;
 
 class ByteTag extends IntValueTag
 {
-    public const TYPE = TagType::TAG_Byte;
+    public const int TYPE = TagType::TAG_Byte;
 
     /**
      * @inheritDoc

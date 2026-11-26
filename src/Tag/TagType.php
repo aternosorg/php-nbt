@@ -6,21 +6,21 @@ namespace Aternos\Nbt\Tag;
 
 class TagType
 {
-    const TAG_End = 0;
-    const TAG_Byte = 1;
-    const TAG_Short = 2;
-    const TAG_Int = 3;
-    const TAG_Long = 4;
-    const TAG_Float = 5;
-    const TAG_Double = 6;
-    const TAG_Byte_Array = 7;
-    const TAG_String = 8;
-    const TAG_List = 9;
-    const TAG_Compound = 10;
-    const TAG_Int_Array = 11;
-    const TAG_Long_Array = 12;
+    public const int TAG_End = 0;
+    public const int TAG_Byte = 1;
+    public const int TAG_Short = 2;
+    public const int TAG_Int = 3;
+    public const int TAG_Long = 4;
+    public const int TAG_Float = 5;
+    public const int TAG_Double = 6;
+    public const int TAG_Byte_Array = 7;
+    public const int TAG_String = 8;
+    public const int TAG_List = 9;
+    public const int TAG_Compound = 10;
+    public const int TAG_Int_Array = 11;
+    public const int TAG_Long_Array = 12;
 
-    const NAMES = [
+    public const array NAMES = [
         self::TAG_End => "TAG_End",
         self::TAG_Byte => "TAG_Byte",
         self::TAG_Short => "TAG_Short",

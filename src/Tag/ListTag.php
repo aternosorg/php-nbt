@@ -10,7 +10,7 @@ use Exception;
 
 class ListTag extends ArrayValueTag
 {
-    public const TYPE = TagType::TAG_List;
+    public const int TYPE = TagType::TAG_List;
     protected int $contentTagType = TagType::TAG_End;
 
     protected ?int $rawContentLength = null;
