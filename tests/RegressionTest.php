@@ -60,4 +60,13 @@ class RegressionTest extends TestCase
         $this->expectExceptionMessage("Duplicate key 'a'");
         $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
     }
+
+    public function testByteArrayStringShowsBytesAsTwoHexDigits(): void
+    {
+        $array = new ByteArrayTag()->setName("bytes");
+        foreach ([0, 1, -1, 127, -128] as $value) {
+            $array[] = $value;
+        }
+        $this->assertSame("TAG_Byte_Array('bytes'): 5 bytes [00 01 ff 7f 80]", strval($array));
+    }
 }
