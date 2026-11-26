@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Serializer;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\IO\Writer\Writer;
-use Exception;
 
 abstract class NbtSerializer
 {
@@ -25,12 +25,12 @@ abstract class NbtSerializer
      * @param int $length length of the encoded string in bytes
      * @param int $maxLength
      * @return void
-     * @throws Exception
+     * @throws InvalidTagValueException
      */
     protected function checkStringLength(int $length, int $maxLength): void
     {
         if ($length > $maxLength) {
-            throw new Exception("String of " . $length . " bytes exceeds maximum length of " . $maxLength . " bytes");
+            throw new InvalidTagValueException("String of " . $length . " bytes exceeds maximum length of " . $maxLength . " bytes");
         }
     }
 
@@ -39,7 +39,7 @@ abstract class NbtSerializer
      *
      * @param int $value
      * @return $this
-     * @throws Exception if the length does not fit into the prefix
+     * @throws InvalidTagValueException if the length does not fit into the prefix
      */
     abstract public function writeStringLengthPrefix(int $value): static;
 

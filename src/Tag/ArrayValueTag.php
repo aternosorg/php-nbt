@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use BadMethodCallException;
 use Countable;
-use Exception;
 use Iterator;
 
 abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Countable
@@ -18,13 +19,13 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     public function writeContent(Writer $writer): static
     {
         $count = $this->count();
         if ($count > 0x7fffffff) {
-            throw new Exception("Array exceeds maximum length of " . 0x7fffffff . " entries");
+            throw new InvalidTagValueException("Array exceeds maximum length of " . 0x7fffffff . " entries");
         }
         $writer->getSerializer()->writeLengthPrefix($count);
         $this->writeValues($writer);
@@ -140,19 +141,19 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws InvalidTagValueException
      */
     public function offsetSet($offset, $value): void
     {
         if (!$this->checkArrayValue($value)) {
-            throw new Exception("Invalid array value");
+            throw new InvalidTagValueException("Invalid array value");
         }
         if (is_null($offset)) {
             $this->valueArray[] = $value;
             return;
         }
         if (!$this->checkArrayKey($offset)) {
-            throw new Exception("Invalid array offset " . $offset);
+            throw new InvalidTagValueException("Invalid array offset " . $offset);
         }
         $this->valueArray[$offset] = $value;
     }

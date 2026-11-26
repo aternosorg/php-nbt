@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\Exception\RawTagModificationException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Countable;
-use Exception;
 use Iterator;
 
 class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
@@ -32,13 +34,13 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     public function writeContent(Writer $writer): static
     {
         if($this->isRaw()) {
             if($this->rawContentFormat !== $writer->getFormat()) {
-                throw new Exception("Cannot change format of raw compound tag");
+                throw new RawTagModificationException("Cannot change format of raw compound tag");
             }
             $writer->write($this->rawContent);
             return $this;
@@ -47,7 +49,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         $writtenNames = [];
         foreach ($this->valueArray as $value) {
             if (in_array($value->getName(), $writtenNames, true)) {
-                throw new Exception("Duplicate key '" . $value->getName() . "' in compound tag");
+                throw new InvalidTagValueException("Duplicate key '" . $value->getName() . "' in compound tag");
             }
             $writtenNames[] = $value->getName();
             $value->writeData($writer);
@@ -58,7 +60,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     protected function readContent(Reader $reader): static
     {
@@ -75,7 +77,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
@@ -90,21 +92,21 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @param Tag $value
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     public function offsetSet($offset, $value): void
     {
         if (!($value instanceof Tag) || $value instanceof EndTag) {
-            throw new Exception("Invalid CompoundTag value");
+            throw new InvalidTagValueException("Invalid CompoundTag value");
         }
         if (!is_string($offset) && !is_null($offset)) {
-            throw new Exception("Invalid CompoundTag key");
+            throw new InvalidTagValueException("Invalid CompoundTag key");
         }
         if($this->isRaw()) {
-            throw new Exception("Raw compound tags cannot be modified");
+            throw new RawTagModificationException("Raw compound tags cannot be modified");
         }
         if (is_null($offset) && is_null($value->getName())) {
-            throw new Exception("Tags inside a CompoundTag must be named.");
+            throw new InvalidTagValueException("Tags inside a CompoundTag must be named.");
         }
         if (is_null($offset)) {
             $offset = $value->getName();
@@ -185,12 +187,12 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws RawTagModificationException
      */
     public function offsetUnset($offset): void
     {
         if($this->isRaw()) {
-            throw new Exception("Raw compound tags cannot be modified");
+            throw new RawTagModificationException("Raw compound tags cannot be modified");
         }
         foreach ($this->valueArray as $val) {
             if ($val->getName() === $offset) {
@@ -257,7 +259,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
      * @param string|null $name
      * @param Tag $tag
      * @return $this
-     * @throws Exception
+     * @throws NbtException
      */
     public function set(?string $name, Tag $tag): static
     {
@@ -268,7 +270,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     /**
      * @param string $name
      * @return $this
-     * @throws Exception
+     * @throws RawTagModificationException
      */
     public function delete(string $name): static
     {
