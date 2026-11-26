@@ -52,7 +52,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
             $writtenNames[] = $value->getName();
             $value->writeData($writer);
         }
-        (new EndTag($this->options))->writeData($writer);
+        new EndTag($this->options)->writeData($writer);
         return $this;
     }
 
