@@ -4,53 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9b6d88651348740dd10d77ed9cc1c4bc",
-    "packages": [
-        {
-            "name": "pocketmine/binaryutils",
-            "version": "0.2.7",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/BinaryUtils.git",
-                "reference": "14c044afa33cb581b4a6d1ea04a87e0bc99e824b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/BinaryUtils/zipball/14c044afa33cb581b4a6d1ea04a87e0bc99e824b",
-                "reference": "14c044afa33cb581b4a6d1ea04a87e0bc99e824b",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.4 || ^8.0",
-                "php-64bit": "*"
-            },
-            "require-dev": {
-                "phpstan/extension-installer": "^1.0",
-                "phpstan/phpstan": "2.1.0",
-                "phpstan/phpstan-phpunit": "^2.0",
-                "phpstan/phpstan-strict-rules": "^2.0.0",
-                "phpunit/phpunit": "^9.5 || ^10.0 || ^11.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "pocketmine\\utils\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "LGPL-3.0"
-            ],
-            "description": "Classes and methods for conveniently handling binary data",
-            "support": {
-                "issues": "https://github.com/pmmp/BinaryUtils/issues",
-                "source": "https://github.com/pmmp/BinaryUtils/tree/0.2.7"
-            },
-            "abandoned": true,
-            "time": "2025-12-24T04:20:35+00:00",
-            "published-time": "2025-12-24T04:21:03+00:00"
-        }
-    ],
+    "content-hash": "615c2bedd281dfe44b98949b6ae000bd",
+    "packages": [],
     "packages-dev": [
         {
             "name": "myclabs/deep-copy",

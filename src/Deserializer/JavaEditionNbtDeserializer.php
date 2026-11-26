@@ -6,7 +6,7 @@ use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
 use Aternos\Nbt\String\StringDataFormatException;
-use pocketmine\utils\Binary;
+use Aternos\Nbt\IO\Binary;
 
 class JavaEditionNbtDeserializer extends NbtDeserializer
 {
@@ -24,7 +24,7 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
     public function readLengthPrefix(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(4);
-        return new DeserializerIntReadResult(Binary::signInt(Binary::readInt($raw)), $raw);
+        return new DeserializerIntReadResult(Binary::readInt($raw), $raw);
     }
 
     /**
@@ -60,7 +60,7 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
     public function readInt(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(4);
-        return new DeserializerIntReadResult(Binary::signInt(Binary::readInt($raw)), $raw);
+        return new DeserializerIntReadResult(Binary::readInt($raw), $raw);
     }
 
     /**

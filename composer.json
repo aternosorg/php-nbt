@@ -14,8 +14,7 @@
     "php-64bit": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "ext-zlib": "*",
-    "pocketmine/binaryutils": "^0.2.7"
+    "ext-zlib": "*"
   },
   "autoload": {
     "psr-4": {

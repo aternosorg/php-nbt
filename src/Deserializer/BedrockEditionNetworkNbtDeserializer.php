@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Deserializer;
 
 use Aternos\Nbt\NbtFormat;
-use pocketmine\utils\Binary;
+use Aternos\Nbt\IO\Binary;
 
 class BedrockEditionNetworkNbtDeserializer extends BedrockEditionNbtDeserializer
 {

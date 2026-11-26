@@ -5,7 +5,7 @@ namespace Aternos\Nbt\Deserializer;
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\StringDataFormatException;
-use pocketmine\utils\Binary;
+use Aternos\Nbt\IO\Binary;
 
 class BedrockEditionNbtDeserializer extends NbtDeserializer
 {
@@ -23,7 +23,7 @@ class BedrockEditionNbtDeserializer extends NbtDeserializer
     public function readLengthPrefix(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(4);
-        return new DeserializerIntReadResult(Binary::signInt(Binary::readLInt($raw)), $raw);
+        return new DeserializerIntReadResult(Binary::readLInt($raw), $raw);
     }
 
     /**
@@ -59,7 +59,7 @@ class BedrockEditionNbtDeserializer extends NbtDeserializer
     public function readInt(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(4);
-        return new DeserializerIntReadResult(Binary::signInt(Binary::readLInt($raw)), $raw);
+        return new DeserializerIntReadResult(Binary::readLInt($raw), $raw);
     }
 
     /**
