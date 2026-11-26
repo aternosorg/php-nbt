@@ -65,6 +65,27 @@ class TagManipulationTest extends TestCase
     /**
      * @throws NbtException
      */
+    public function testCompoundMovesChildToNewKey(): void
+    {
+        $compound = new CompoundTag();
+        $compound["a"] = new IntTag()->setValue(1);
+        $compound["b"] = new IntTag()->setValue(2);
+        $moved = $compound["a"];
+        $compound["c"] = $moved;
+
+        $this->assertCount(2, $compound);
+        $this->assertNull($compound["a"]);
+        $this->assertSame($moved, $compound["c"]);
+        $this->assertSame(["b", "c"], array_keys(iterator_to_array($compound)));
+
+        $writer = new StringWriter();
+        $compound->write($writer);
+        $this->assertNotSame("", $writer->getStringData());
+    }
+
+    /**
+     * @throws NbtException
+     */
     public function testCompoundAppendUsesTagName(): void
     {
         $compound = new CompoundTag();
@@ -196,6 +217,27 @@ class TagManipulationTest extends TestCase
         $array = new ByteArrayTag();
         $this->expectException(InvalidTagValueException::class);
         $array[] = 128;
+    }
+
+    /**
+     * @throws NbtException
+     */
+    public function testSetValuesKeepsIndicesContinuous(): void
+    {
+        // @phpstan-ignore argument.type (testing the runtime handling of keys that are not a list)
+        $array = new ByteArrayTag()->setValues([3 => 1, 7 => 2]);
+        $array[] = 5;
+
+        $this->assertSame([1, 2, 5], $array->getValues());
+        $this->assertSame(1, $array[0]);
+    }
+
+    public function testSetValuesRejectsValuesThatAreNoInts(): void
+    {
+        $this->expectException(InvalidTagValueException::class);
+        $this->expectExceptionMessage("Invalid value of type string for TAG_Byte_Array");
+        // @phpstan-ignore argument.type (testing the runtime check)
+        new ByteArrayTag()->setValues(["1"]);
     }
 
     public function testIntArraySetValuesRejectsValuesOutOfRange(): void

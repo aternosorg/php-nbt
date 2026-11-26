@@ -37,18 +37,21 @@ abstract class NumberArrayTag extends ArrayValueTag
     }
 
     /**
-     * @param list<int> $values
-     * @throws InvalidTagValueException if a value is out of range for the entry type
+     * @param list<int> $values keys are ignored, the values are stored with continuous indices starting at 0
+     * @throws InvalidTagValueException if a value is not an int or out of range for the entry type
      */
     public function setValues(array $values): static
     {
         foreach ($values as $value) {
+            if (!is_int($value)) {
+                throw new InvalidTagValueException("Invalid value of type " . get_debug_type($value) . " for " . $this->getType()->getName());
+            }
             if (!$this->isValidValue($value)) {
                 throw new InvalidTagValueException("Value " . $value . " is out of range for " . $this->getType()->getName());
             }
         }
         $this->checkLength(count($values));
-        $this->valueArray = $values;
+        $this->valueArray = array_values($values);
         return $this;
     }
 

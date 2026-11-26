@@ -126,6 +126,8 @@ class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countab
 
         $name = $offset ?? $value->getName()
             ?? throw new InvalidTagValueException("Tags inside a CompoundTag must be named, " . $value->getType()->getName() . " has no name");
+        // $value may already be a child under another name, e.g. $compound["new"] = $compound["old"]
+        $this->removeChild($value);
         $this->offsetUnset($name);
         $this->valueArray[] = $value->setName($name)->setParentTag($this);
     }
@@ -162,11 +164,22 @@ class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countab
     public function offsetUnset(mixed $offset): void
     {
         $this->assertNotRaw();
-        $index = array_find_key($this->valueArray, fn(Tag $value): bool => $value->getName() === $offset);
+        $child = $this->offsetGet($offset);
+        if ($child !== null) {
+            $this->removeChild($child);
+        }
+    }
+
+    /**
+     * Remove $child if it is a child of this tag, compared by identity instead of by name
+     */
+    protected function removeChild(Tag $child): void
+    {
+        $index = array_find_key($this->valueArray, fn(Tag $value): bool => $value === $child);
         if ($index === null) {
             return;
         }
-        $this->valueArray[$index]->setParentTag(null);
+        $child->setParentTag(null);
         array_splice($this->valueArray, $index, 1);
     }
 
