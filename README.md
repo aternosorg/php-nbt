@@ -113,6 +113,9 @@ $tag->write($writer);
 file_put_contents("data.nbt", $writer->getStringData());
 ```
 
+### Errors
+All exceptions that this library throws because of invalid data or tag values extend `\Aternos\Nbt\Exception\NbtException`.
+
 ### Bedrock Edition level.dat
 While the Bedrock Edition level.dat file is an uncompressed NBT file, 
 its NBT data is prepended by two 32-bit little endian integers.

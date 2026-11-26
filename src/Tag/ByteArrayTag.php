@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\NbtException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
-use Exception;
 
 class ByteArrayTag extends ArrayValueTag
 {
@@ -25,7 +25,7 @@ class ByteArrayTag extends ArrayValueTag
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     protected function readValues(Reader $reader, int $length): array
     {

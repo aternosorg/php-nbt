@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Deserializer;
 
+use Aternos\Nbt\IO\BinaryDataException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\NbtFormat;
-use Exception;
 
 abstract class NbtDeserializer
 {
@@ -45,7 +45,7 @@ abstract class NbtDeserializer
 
     /**
      * @return DeserializerIntReadResult
-     * @throws Exception if fewer than 8 bytes are left
+     * @throws BinaryDataException if fewer than 8 bytes are left
      */
     abstract public function readLong(): DeserializerIntReadResult;
 
@@ -53,13 +53,13 @@ abstract class NbtDeserializer
      * Read the 8 raw bytes of a long
      *
      * @return string
-     * @throws Exception if fewer than 8 bytes are left
+     * @throws BinaryDataException if fewer than 8 bytes are left
      */
     protected function readRawLong(): string
     {
         $raw = $this->getReader()->read(8);
         if (strlen($raw) !== 8) {
-            throw new Exception("Failed to read long: expected 8 bytes, got " . strlen($raw));
+            throw new BinaryDataException("Failed to read long: expected 8 bytes, got " . strlen($raw));
         }
         return $raw;
     }

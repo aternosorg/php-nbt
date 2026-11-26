@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\IO\Reader;
 
+use Aternos\Nbt\Exception\CompressionException;
 use Aternos\Nbt\NbtFormat;
-use Exception;
 
 class ZLibCompressedStringReader extends StringReader
 {
     /**
-     * @throws Exception
+     * @throws CompressionException
      */
     public function __construct(string $data, NbtFormat $format, int $maxDecompressedSize = 0)
     {
         if (($uncompressed = @zlib_decode($data, $maxDecompressedSize)) === false) {
-            throw new Exception("Invalid ZLib data");
+            throw new CompressionException("Invalid ZLib data");
         }
         parent::__construct($uncompressed, $format);
     }

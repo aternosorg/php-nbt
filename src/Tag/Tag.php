@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\CircularStructureException;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\Exception\UnknownTagTypeException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
 use BadMethodCallException;
-use Exception;
 use JsonSerializable;
 
 abstract class Tag implements JsonSerializable
@@ -69,12 +72,12 @@ abstract class Tag implements JsonSerializable
 
     /**
      * @return array<?string>
-     * @throws Exception
+     * @throws CircularStructureException
      */
     public function getPath(): array
     {
         if ($this->isBeingSerialized) {
-            throw new Exception("Failed to resolve path: Circular NBT structure detected");
+            throw new CircularStructureException("Failed to resolve path: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
         if($this->parentTag) {
@@ -93,7 +96,7 @@ abstract class Tag implements JsonSerializable
     {
         try {
             $path = $this->getPath();
-        }catch (Exception) {
+        }catch (CircularStructureException) {
             return null;
         }
         return implode("/", $path);
@@ -140,7 +143,7 @@ abstract class Tag implements JsonSerializable
      * @param Reader $reader
      * @param bool $named
      * @return $this
-     * @throws Exception
+     * @throws NbtException
      */
     public function read(Reader $reader, bool $named = true): static
     {
@@ -156,7 +159,7 @@ abstract class Tag implements JsonSerializable
      * @param TagOptions $options
      * @param bool $named
      * @return string
-     * @throws Exception
+     * @throws NbtException
      */
     public static function readRaw(Reader $reader, TagOptions $options, bool $named = true): string
     {
@@ -173,12 +176,12 @@ abstract class Tag implements JsonSerializable
      * @param Writer $writer
      * @param bool $named
      * @return $this
-     * @throws Exception
+     * @throws NbtException
      */
     public function writeData(Writer $writer, bool $named = true): static
     {
         if ($this->isBeingSerialized) {
-            throw new Exception("Failed to serialize: Circular NBT structure detected");
+            throw new CircularStructureException("Failed to serialize: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
         $writer->write(pack("C", $this->getType()->value));
@@ -186,7 +189,7 @@ abstract class Tag implements JsonSerializable
         if ($named && static::canBeNamed()) {
             $name = $this->getName();
             if (is_null($name)) {
-                throw new Exception("Cannot write named tag, because tag does not have a name value");
+                throw new InvalidTagValueException("Cannot write named tag, because tag does not have a name value");
             }
             $serializer->writeString($this->getName());
         }
@@ -198,14 +201,14 @@ abstract class Tag implements JsonSerializable
     /**
      * @param Writer $writer
      * @return $this
-     * @throws Exception
+     * @throws NbtException
      */
     public function write(Writer $writer): static
     {
         if (!($this instanceof CompoundTag) &&
             !(in_array($writer->getFormat(), [NbtFormat::BEDROCK_EDITION_NETWORK, NbtFormat::BEDROCK_EDITION]) &&
                 $this instanceof ListTag)) {
-            throw new Exception("NBT files must start with a CompoundTag (or ListTag for Minecraft Bedrock Edition)");
+            throw new InvalidTagValueException("NBT files must start with a CompoundTag (or ListTag for Minecraft Bedrock Edition)");
         }
         if ($this->getName() === null) {
             $this->setName("");
@@ -262,7 +265,7 @@ abstract class Tag implements JsonSerializable
     /**
      * Read a complete tag, starting with its type
      *
-     * @throws Exception
+     * @throws NbtException
      */
     public static function load(Reader $reader, ?TagOptions $options = null, ?Tag $parent = null): Tag
     {
@@ -281,7 +284,7 @@ abstract class Tag implements JsonSerializable
      * @param Reader $reader
      * @param TagOptions|null $options
      * @return RawTagReadResult
-     * @throws Exception
+     * @throws NbtException
      */
     public static function loadRaw(Reader $reader, ?TagOptions $options = null): RawTagReadResult
     {
@@ -296,10 +299,10 @@ abstract class Tag implements JsonSerializable
     }
 
     /**
-     * @throws Exception
+     * @throws UnknownTagTypeException
      */
     protected static function getTagTypeById(int $typeId): TagType
     {
-        return TagType::tryFrom($typeId) ?? throw new Exception("Unknown NBT tag type " . $typeId);
+        return TagType::tryFrom($typeId) ?? throw new UnknownTagTypeException("Unknown NBT tag type " . $typeId);
     }
 }

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\Exception\RawTagModificationException;
+use Aternos\Nbt\Exception\UnknownTagTypeException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
-use Exception;
 
 class ListTag extends ArrayValueTag
 {
@@ -20,13 +23,14 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
+     * @throws NbtException
      */
     public function writeContent(Writer $writer): static
     {
         $writer->getSerializer()->writeByte($this->contentType->value);
         if ($this->isRaw()) {
             if($this->rawContentFormat !== $writer->getFormat()) {
-                throw new Exception("Cannot change format of raw list tag");
+                throw new RawTagModificationException("Cannot change format of raw list tag");
             }
 
             $writer->getSerializer()->writeLengthPrefix($this->rawContentLength);
@@ -61,18 +65,18 @@ class ListTag extends ArrayValueTag
     /**
      * @param int $contentTagType
      * @return $this
-     * @throws Exception
+     * @throws NbtException
      */
     public function setContentType(TagType $contentType): static
     {
         if ($this->isRaw()) {
-            throw new Exception("Raw list tags cannot be modified");
+            throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
         /** @var Tag $value */
         foreach ($this->valueArray as $value) {
             if ($value->getType() !== $contentType) {
-                throw new Exception("New list content type is incompatible with its values");
+                throw new InvalidTagValueException("New list content type is incompatible with its values");
             }
         }
         $this->contentType = $contentType;
@@ -81,7 +85,7 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     protected function readValues(Reader $reader, int $length): array
     {
@@ -110,7 +114,7 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     protected function readContent(Reader $reader): static
     {
@@ -129,7 +133,7 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
@@ -142,11 +146,11 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @throws Exception
+     * @throws UnknownTagTypeException
      */
     protected static function getContentTypeById(int $typeId): TagType
     {
-        return TagType::tryFrom($typeId) ?? throw new Exception("Unknown ListTag content type " . $typeId);
+        return TagType::tryFrom($typeId) ?? throw new UnknownTagTypeException("Unknown ListTag content type " . $typeId);
     }
 
     /**
@@ -155,7 +159,7 @@ class ListTag extends ArrayValueTag
      * @param int $contentType
      * @param int $length
      * @return string
-     * @throws Exception
+     * @throws NbtException
      */
     protected static function readValueTagsRaw(Reader $reader, TagOptions $options, TagType $contentType, int $length): string
     {
@@ -198,7 +202,7 @@ class ListTag extends ArrayValueTag
     public function offsetSet($offset, $value): void
     {
         if ($this->isRaw()) {
-            throw new Exception("Raw list tags cannot be modified");
+            throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
         /** @var Tag|null $previousValue */
@@ -214,12 +218,12 @@ class ListTag extends ArrayValueTag
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws RawTagModificationException
      */
     public function offsetUnset($offset): void
     {
         if ($this->isRaw()) {
-            throw new Exception("Raw list tags cannot be modified");
+            throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
         /** @var Tag|null $previousValue */
