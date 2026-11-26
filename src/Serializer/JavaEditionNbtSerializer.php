@@ -5,7 +5,7 @@ namespace Aternos\Nbt\Serializer;
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
-use pocketmine\utils\Binary;
+use Aternos\Nbt\IO\Binary;
 
 class JavaEditionNbtSerializer extends NbtSerializer
 {
@@ -22,7 +22,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeInt(Binary::unsignInt($value)));
+        $this->getWriter()->write(Binary::writeInt($value));
         return $this;
     }
 
@@ -41,7 +41,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeByte(int $value): static
     {
-        $this->getWriter()->write(Binary::writeByte(Binary::unsignByte($value)));
+        $this->getWriter()->write(Binary::writeByte($value));
         return $this;
     }
 
@@ -50,7 +50,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeShort(int $value): static
     {
-        $this->getWriter()->write(Binary::writeShort(Binary::unsignShort($value)));
+        $this->getWriter()->write(Binary::writeShort($value));
         return $this;
     }
 
@@ -59,7 +59,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeInt(int $value): static
     {
-        $this->getWriter()->write(Binary::writeInt(Binary::unsignInt($value)));
+        $this->getWriter()->write(Binary::writeInt($value));
         return $this;
     }
 

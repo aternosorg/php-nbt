@@ -4,7 +4,7 @@ namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
-use pocketmine\utils\Binary;
+use Aternos\Nbt\IO\Binary;
 
 class BedrockEditionNbtSerializer extends NbtSerializer
 {
@@ -21,7 +21,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLInt(Binary::unsignInt($value)));
+        $this->getWriter()->write(Binary::writeLInt($value));
         return $this;
     }
 
@@ -40,7 +40,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeByte(int $value): static
     {
-        $this->getWriter()->write(Binary::writeByte(Binary::unsignByte($value)));
+        $this->getWriter()->write(Binary::writeByte($value));
         return $this;
     }
 
@@ -49,7 +49,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeShort(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLShort(Binary::unsignShort($value)));
+        $this->getWriter()->write(Binary::writeLShort($value));
         return $this;
     }
 
@@ -58,7 +58,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeInt(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLInt(Binary::unsignInt($value)));
+        $this->getWriter()->write(Binary::writeLInt($value));
         return $this;
     }
 

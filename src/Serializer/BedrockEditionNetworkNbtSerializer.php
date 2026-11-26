@@ -3,7 +3,7 @@
 namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\NbtFormat;
-use pocketmine\utils\Binary;
+use Aternos\Nbt\IO\Binary;
 
 class BedrockEditionNetworkNbtSerializer extends BedrockEditionNbtSerializer
 {
