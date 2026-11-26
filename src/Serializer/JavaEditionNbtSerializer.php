@@ -31,6 +31,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeStringLengthPrefix(int $value): static
     {
+        $this->checkStringLength($value, 0xffff);
         $this->getWriter()->write(Binary::writeShort($value));
         return $this;
     }
