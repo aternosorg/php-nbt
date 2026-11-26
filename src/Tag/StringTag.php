@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
-use Exception;
 
 class StringTag extends Tag
 {
@@ -68,13 +69,13 @@ class StringTag extends Tag
 
     /**
      * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
     public function writeContent(Writer $writer): static
     {
         $length = strlen($this->value);
         if ($length > 0xffff) {
-            throw new Exception("String exceeds maximum length of " . 0xffff . " characters");
+            throw new InvalidTagValueException("String exceeds maximum length of " . 0xffff . " characters");
         }
         $writer->getSerializer()->writeString($this->value);
         return $this;
