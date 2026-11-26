@@ -13,26 +13,10 @@ use JsonSerializable;
 
 abstract class Tag implements JsonSerializable
 {
-    public const int TYPE = -1;
-
     /**
-     * @var class-string<Tag>[]
+     * The type of the tag, set by every concrete tag class
      */
-    public const array TAGS = [
-        TagType::TAG_End => EndTag::class,
-        TagType::TAG_Byte => ByteTag::class,
-        TagType::TAG_Short => ShortTag::class,
-        TagType::TAG_Int => IntTag::class,
-        TagType::TAG_Long => LongTag::class,
-        TagType::TAG_Float => FloatTag::class,
-        TagType::TAG_Double => DoubleTag::class,
-        TagType::TAG_Byte_Array => ByteArrayTag::class,
-        TagType::TAG_String => StringTag::class,
-        TagType::TAG_List => ListTag::class,
-        TagType::TAG_Compound => CompoundTag::class,
-        TagType::TAG_Int_Array => IntArrayTag::class,
-        TagType::TAG_Long_Array => LongArrayTag::class
-    ];
+    public const ?TagType TYPE = null;
 
     protected ?string $name = null;
     protected bool $isBeingSerialized = false;
@@ -145,10 +129,7 @@ abstract class Tag implements JsonSerializable
         throw new BadMethodCallException("Not implemented");
     }
 
-    /**
-     * @return int
-     */
-    public function getType(): int
+    public function getType(): TagType
     {
         return static::TYPE;
     }
@@ -200,7 +181,7 @@ abstract class Tag implements JsonSerializable
             throw new Exception("Failed to serialize: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        $writer->write(pack("C", static::TYPE & 0xff));
+        $writer->write(pack("C", $this->getType()->value));
         $serializer = $writer->getSerializer();
         if ($named && static::canBeNamed()) {
             $name = $this->getName();
@@ -248,7 +229,7 @@ abstract class Tag implements JsonSerializable
      */
     protected function getTagTypeString(): string
     {
-        return TagType::NAMES[static::TYPE];
+        return $this->getType()->getName();
     }
 
     /**
@@ -279,19 +260,8 @@ abstract class Tag implements JsonSerializable
     abstract protected function getValueString(): string;
 
     /**
-     * @param int $type
-     * @return class-string<Tag>|null
-     */
-    public static function getTagClass(int $type): ?string
-    {
-        return static::TAGS[$type] ?? null;
-    }
-
-    /**
-     * @param Reader $reader
-     * @param TagOptions|null $options
-     * @param Tag|null $parent
-     * @return Tag
+     * Read a complete tag, starting with its type
+     *
      * @throws Exception
      */
     public static function load(Reader $reader, ?TagOptions $options = null, ?Tag $parent = null): Tag
@@ -300,12 +270,8 @@ abstract class Tag implements JsonSerializable
             $options = new TagOptions();
         }
 
-        $type = $reader->getDeserializer()->readByte()->getValue();
-        $class = static::getTagClass($type);
-        if (is_null($class)) {
-            throw new Exception("Unknown NBT tag type " . $type);
-        }
-        /** @var Tag $tag */
+        $typeId = $reader->getDeserializer()->readByte()->getValue();
+        $class = static::getTagTypeById($typeId)->getTagClass();
         $tag = new $class($options);
         $tag->setParentTag($parent)->read($reader);
         return $tag;
@@ -323,13 +289,17 @@ abstract class Tag implements JsonSerializable
             $options = new TagOptions();
         }
 
-        $type = $reader->getDeserializer()->readByte();
-        $class = static::getTagClass($type->getValue());
-        if (is_null($class)) {
-            throw new Exception("Unknown NBT tag type " . $type->getValue());
-        }
-        /** @var Tag $class */
-        $data = $class::readRaw($reader, $options);
-        return new RawTagReadResult($type->getRawData() . $data, $type->getValue());
+        $typeByte = $reader->getDeserializer()->readByte();
+        $type = static::getTagTypeById($typeByte->getValue());
+        $data = $type->getTagClass()::readRaw($reader, $options);
+        return new RawTagReadResult($typeByte->getRawData() . $data, $type);
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected static function getTagTypeById(int $typeId): TagType
+    {
+        return TagType::tryFrom($typeId) ?? throw new Exception("Unknown NBT tag type " . $typeId);
     }
 }

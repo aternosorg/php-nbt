@@ -16,7 +16,7 @@ class LongDeserializationTest extends TestCase
     #[TestWith([NbtFormat::JAVA_EDITION, "\xff\xff\xff\xff\xff\xff\xff\xfe", -2], "java negative")]
     #[TestWith([NbtFormat::BEDROCK_EDITION, "\x08\x07\x06\x05\x04\x03\x02\x01", 0x0102030405060708], "bedrock")]
     #[TestWith([NbtFormat::BEDROCK_EDITION, "\xfe\xff\xff\xff\xff\xff\xff\xff", -2], "bedrock negative")]
-    public function testReadsLong(int $format, string $data, int $expected): void
+    public function testReadsLong(NbtFormat $format, string $data, int $expected): void
     {
         $result = new StringReader($data, $format)->getDeserializer()->readLong();
 
@@ -33,7 +33,7 @@ class LongDeserializationTest extends TestCase
     #[TestWith([NbtFormat::BEDROCK_EDITION, ""], "bedrock empty")]
     #[TestWith([NbtFormat::BEDROCK_EDITION, "\x01\x02"], "bedrock two bytes")]
     #[TestWith([NbtFormat::BEDROCK_EDITION, "\x01\x02\x03\x04\x05\x06\x07"], "bedrock seven bytes")]
-    public function testTruncatedLongThrows(int $format, string $data): void
+    public function testTruncatedLongThrows(NbtFormat $format, string $data): void
     {
         $deserializer = new StringReader($data, $format)->getDeserializer();
 

@@ -11,6 +11,9 @@ Additionally, all three flavors (Java Edition, Bedrock Edition/little endian, an
 composer require aternos/nbt
 ```
 
+Version 2 is a major version with breaking changes.
+If you are upgrading from version 1, see [Upgrading from 1.x](#upgrading-from-1x).
+
 ## Usage
 ### Reading NBT data
 To read existing NBT data, a Reader object is required.
@@ -26,7 +29,7 @@ $gzipReader = new \Aternos\Nbt\IO\Reader\GZipCompressedStringReader("...compress
 $zlibReader = new \Aternos\Nbt\IO\Reader\ZLibCompressedStringReader("...compressedNbtData...", \Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK);
 ```
 Note that the reader object is also used to specify the NBT format flavor. 
-Available are `\Aternos\Nbt\NbtFormat::JAVA_EDITION`, `\Aternos\Nbt\NbtFormat::BEDROCK_EDITION`, and `\Aternos\Nbt\NbtFormat::BEDROCK_EDITION_NETWORK`.
+`\Aternos\Nbt\NbtFormat` is an enum with the cases `JAVA_EDITION`, `BEDROCK_EDITION`, and `BEDROCK_EDITION_NETWORK`.
 
 More advanced readers can be created by implementing the `\Aternos\Nbt\IO\Reader\Reader` interface or by extending the `\Aternos\Nbt\IO\Reader\AbstractReader` class.
 
@@ -64,7 +67,7 @@ echo count($myCompound); // 2
 
 //Manually setting a list's type is not strictly necessary,
 //since its type will be set automatically when the first element is added
-$myList = new \Aternos\Nbt\Tag\ListTag()->setContentTag(\Aternos\Nbt\Tag\TagType::TAG_String);
+$myList = new \Aternos\Nbt\Tag\ListTag()->setContentType(\Aternos\Nbt\Tag\TagType::STRING);
 
 $myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("Hello");
 $myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("World");
@@ -131,3 +134,15 @@ if($dataLength !== strlen($data) - 8) {
 }
 $tag = \Aternos\Nbt\Tag\Tag::load(new \Aternos\Nbt\IO\Reader\StringReader(substr($data, 8), \Aternos\Nbt\NbtFormat::BEDROCK_EDITION));
 ```
+
+## Upgrading from 1.x
+Version 2 contains these breaking changes:
+
+- `NbtFormat` is an enum instead of a class with int constants.
+  The case names are the same as the old constant names (`NbtFormat::JAVA_EDITION` etc.).
+  All `getFormat()`/`setFormat()` methods and reader constructors use the enum instead of `int`.
+  `NbtFormat::getDeserializer()`/`getSerializer()` are replaced by `$format->createDeserializer()`/`createSerializer()`.
+- `TagType` is an int-backed enum: `TagType::TAG_Byte_Array` is now `TagType::BYTE_ARRAY` etc.
+  `Tag::TYPE` constants and `getType()` return `TagType`, `TagType::NAMES` is replaced by `$type->getName()`, and `Tag::TAGS`/`Tag::getTagClass()` by `$type->getTagClass()`.
+- `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
+  `RawTagReadResult::getTagType()` returns `TagType` as well.

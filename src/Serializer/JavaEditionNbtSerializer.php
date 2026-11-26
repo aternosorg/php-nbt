@@ -11,10 +11,7 @@ use Aternos\Nbt\IO\Binary;
 
 class JavaEditionNbtSerializer extends NbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
+    public function getFormat(): NbtFormat
     {
         return NbtFormat::JAVA_EDITION;
     }

@@ -7,20 +7,21 @@ namespace Aternos\Nbt\Tag;
 use ArrayAccess;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\NbtFormat;
 use Countable;
 use Exception;
 use Iterator;
 
 class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 {
-    public const int TYPE = TagType::TAG_Compound;
+    public const TagType TYPE = TagType::COMPOUND;
 
     /**
      * @var Tag[]
      */
     protected array $valueArray = [];
     protected ?string $rawContent = null;
-    protected ?int $rawContentFormat = null;
+    protected ?NbtFormat $rawContentFormat = null;
 
     /**
      * @return bool
@@ -83,7 +84,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         do {
             $tag = Tag::loadRaw($reader, $options);
             $result .= $tag->getData();
-        } while ($tag->getTagType() !== TagType::TAG_End);
+        } while ($tag->getTagType() !== TagType::END);
         return $result;
     }
 
@@ -358,14 +359,12 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @param string $name
-     * @param int|null $listContentTag - Required content type for the list, if null, any type can be returned
-     * @return ListTag|null
+     * @param TagType|null $contentType Required content type of the list, if null, a list of any type can be returned
      */
-    public function getList(string $name, ?int $listContentTag = null): ?ListTag
+    public function getList(string $name, ?TagType $contentType = null): ?ListTag
     {
         $tag = $this->get($name);
-        if (!$tag instanceof ListTag || ($listContentTag !== null && $tag->getContentTag() !== $listContentTag)) {
+        if (!$tag instanceof ListTag || ($contentType !== null && $tag->getContentType() !== $contentType)) {
             return null;
         }
         return $tag;

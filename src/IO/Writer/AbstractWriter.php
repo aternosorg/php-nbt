@@ -9,7 +9,7 @@ use Aternos\Nbt\Serializer\NbtSerializer;
 
 abstract class AbstractWriter implements Writer
 {
-    protected int $format = NbtFormat::JAVA_EDITION;
+    protected NbtFormat $format = NbtFormat::JAVA_EDITION;
     protected ?NbtSerializer $serializer = null;
 
     /**
@@ -17,16 +17,10 @@ abstract class AbstractWriter implements Writer
      */
     public function getSerializer(): NbtSerializer
     {
-        if (is_null($this->serializer)) {
-            $this->serializer = NbtFormat::getSerializer($this->getFormat(), $this);
-        }
-        return $this->serializer;
+        return $this->serializer ??= $this->getFormat()->createSerializer($this);
     }
 
-    /**
-     * @return int
-     */
-    public function getFormat(): int
+    public function getFormat(): NbtFormat
     {
         return $this->format;
     }
@@ -35,7 +29,7 @@ abstract class AbstractWriter implements Writer
      * @param int $format
      * @return $this
      */
-    public function setFormat(int $format): static
+    public function setFormat(NbtFormat $format): static
     {
         $this->format = $format;
         $this->serializer = null;

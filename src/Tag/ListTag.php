@@ -6,23 +6,24 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\NbtFormat;
 use Exception;
 
 class ListTag extends ArrayValueTag
 {
-    public const int TYPE = TagType::TAG_List;
-    protected int $contentTagType = TagType::TAG_End;
+    public const TagType TYPE = TagType::LIST;
+    protected TagType $contentType = TagType::END;
 
     protected ?int $rawContentLength = null;
     protected ?string $rawContent = null;
-    protected ?int $rawContentFormat = null;
+    protected ?NbtFormat $rawContentFormat = null;
 
     /**
      * @inheritDoc
      */
     public function writeContent(Writer $writer): static
     {
-        $writer->getSerializer()->writeByte($this->contentTagType);
+        $writer->getSerializer()->writeByte($this->contentType->value);
         if ($this->isRaw()) {
             if($this->rawContentFormat !== $writer->getFormat()) {
                 throw new Exception("Cannot change format of raw list tag");
@@ -50,11 +51,11 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @return int
+     * The type of the list entries, TagType::END while the list is empty and has no type
      */
-    public function getContentTag(): int
+    public function getContentType(): TagType
     {
-        return $this->contentTagType;
+        return $this->contentType;
     }
 
     /**
@@ -62,7 +63,7 @@ class ListTag extends ArrayValueTag
      * @return $this
      * @throws Exception
      */
-    public function setContentTag(int $contentTagType): static
+    public function setContentType(TagType $contentType): static
     {
         if ($this->isRaw()) {
             throw new Exception("Raw list tags cannot be modified");
@@ -70,11 +71,11 @@ class ListTag extends ArrayValueTag
 
         /** @var Tag $value */
         foreach ($this->valueArray as $value) {
-            if ($value::TYPE !== $contentTagType) {
+            if ($value->getType() !== $contentType) {
                 throw new Exception("New list content type is incompatible with its values");
             }
         }
-        $this->contentTagType = $contentTagType;
+        $this->contentType = $contentType;
         return $this;
     }
 
@@ -85,11 +86,7 @@ class ListTag extends ArrayValueTag
     protected function readValues(Reader $reader, int $length): array
     {
         $values = [];
-        /** @var class-string<Tag>|null $tagClass */
-        $tagClass = Tag::getTagClass($this->contentTagType);
-        if (is_null($tagClass)) {
-            throw new Exception("Unknown ListTag content type " . $this->contentTagType);
-        }
+        $tagClass = $this->contentType->getTagClass();
         for ($i = 0; $i < $length; $i++) {
             $values[] = new $tagClass($this->options)->setParentTag($this)->read($reader, false);
         }
@@ -104,11 +101,11 @@ class ListTag extends ArrayValueTag
         if (!($value instanceof Tag)) {
             return false;
         }
-        if ($this->count() === 0 && $this->contentTagType === TagType::TAG_End) {
-            $this->contentTagType = $value::TYPE;
+        if ($this->count() === 0 && $this->contentType === TagType::END) {
+            $this->contentType = $value->getType();
             return true;
         }
-        return $value::TYPE === $this->contentTagType;
+        return $value->getType() === $this->contentType;
     }
 
     /**
@@ -117,13 +114,13 @@ class ListTag extends ArrayValueTag
      */
     protected function readContent(Reader $reader): static
     {
-        $this->contentTagType = $reader->getDeserializer()->readByte()->getValue();
+        $this->contentType = static::getContentTypeById($reader->getDeserializer()->readByte()->getValue());
         $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
         $maxLength = $this->options->getMaxListTagLength();
         if ($maxLength !== null && $length > $maxLength) {
             $this->rawContentFormat = $reader->getFormat();
             $this->rawContentLength = $length;
-            $this->rawContent = static::readValueTagsRaw($reader, $this->options, $this->contentTagType, $length);
+            $this->rawContent = static::readValueTagsRaw($reader, $this->options, $this->contentType, $length);
             return $this;
         }
         $this->valueArray = $this->readValues($reader, $length);
@@ -136,11 +133,20 @@ class ListTag extends ArrayValueTag
      */
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
-        $contentTagType = $reader->getDeserializer()->readByte();
+        $contentTypeByte = $reader->getDeserializer()->readByte();
+        $contentType = static::getContentTypeById($contentTypeByte->getValue());
         $length = $reader->getDeserializer()->readLengthPrefix();
 
-        return $contentTagType->getRawData() . $length->getRawData() .
-            static::readValueTagsRaw($reader, $options, $contentTagType->getValue(), $length->getValue());
+        return $contentTypeByte->getRawData() . $length->getRawData() .
+            static::readValueTagsRaw($reader, $options, $contentType, $length->getValue());
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected static function getContentTypeById(int $typeId): TagType
+    {
+        return TagType::tryFrom($typeId) ?? throw new Exception("Unknown ListTag content type " . $typeId);
     }
 
     /**
@@ -151,15 +157,10 @@ class ListTag extends ArrayValueTag
      * @return string
      * @throws Exception
      */
-    protected static function readValueTagsRaw(Reader $reader, TagOptions $options, int $contentType, int $length): string
+    protected static function readValueTagsRaw(Reader $reader, TagOptions $options, TagType $contentType, int $length): string
     {
         $valueData = "";
-
-        /** @var class-string<Tag>|null $tagClass */
-        $tagClass = Tag::getTagClass($contentType);
-        if (is_null($tagClass)) {
-            throw new Exception("Unknown ListTag content type " . $contentType);
-        }
+        $tagClass = $contentType->getTagClass();
         for ($i = 0; $i < $length; $i++) {
             $valueData .= $tagClass::readRaw($reader, $options, false);
         }
@@ -188,7 +189,7 @@ class ListTag extends ArrayValueTag
      */
     protected function getTagTypeString(): string
     {
-        return parent::getTagTypeString() . "<" . TagType::NAMES[$this->contentTagType] . ">";
+        return parent::getTagTypeString() . "<" . $this->contentType->getName() . ">";
     }
 
     /**
@@ -236,7 +237,7 @@ class ListTag extends ArrayValueTag
             return true;
         }
         if (!$tag instanceof ListTag || $this->getType() !== $tag->getType() ||
-            $this->getContentTag() !== $tag->getContentTag() || count($tag) !== count($this)) {
+            $this->getContentType() !== $tag->getContentType() || count($tag) !== count($this)) {
             return false;
         }
         /**

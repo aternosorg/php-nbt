@@ -6,7 +6,7 @@ namespace Aternos\Nbt\Tag;
 
 class RawTagReadResult
 {
-    public function __construct(protected string $data, protected int $tagType)
+    public function __construct(protected string $data, protected TagType $tagType)
     {
     }
 
@@ -18,10 +18,7 @@ class RawTagReadResult
         return $this->data;
     }
 
-    /**
-     * @return int
-     */
-    public function getTagType(): int
+    public function getTagType(): TagType
     {
         return $this->tagType;
     }

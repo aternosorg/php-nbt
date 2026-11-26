@@ -24,7 +24,7 @@ class RawReadingTest extends TestCase
      *
      * @throws Exception
      */
-    protected function createData(int $format): string
+    protected function createData(NbtFormat $format): string
     {
         $root = new CompoundTag()
             ->set("raw", TagFixtures::everyTagType())
@@ -40,7 +40,7 @@ class RawReadingTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function load(string $data, int $format, TagOptions $options): CompoundTag
+    protected function load(string $data, NbtFormat $format, TagOptions $options): CompoundTag
     {
         $tag = Tag::load(new StringReader($data, $format), $options);
         $this->assertInstanceOf(CompoundTag::class, $tag);
@@ -50,7 +50,7 @@ class RawReadingTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function write(Tag $tag, int $format): string
+    protected function write(Tag $tag, NbtFormat $format): string
     {
         $writer = new StringWriter()->setFormat($format);
         $tag->write($writer);
@@ -162,7 +162,7 @@ class RawReadingTest extends TestCase
         $root = $this->load($data, NbtFormat::JAVA_EDITION, new TagOptions()->setMaxListTagLength(3));
 
         $this->assertInstanceOf(ListTag::class, $root->getList("longList"));
-        $this->assertSame(IntTag::TYPE, $root->getList("longList")->getContentTag());
+        $this->assertSame(IntTag::TYPE, $root->getList("longList")->getContentType());
     }
 
     /**
@@ -201,7 +201,7 @@ class RawReadingTest extends TestCase
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage("Raw list tags cannot be modified");
-        $root->getList("longList")->setContentTag(IntTag::TYPE);
+        $root->getList("longList")->setContentType(IntTag::TYPE);
     }
 
     /**

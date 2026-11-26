@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aternos\Nbt\Deserializer;
 
 use Aternos\Nbt\IO\Reader\Reader;
+use Aternos\Nbt\NbtFormat;
 use Exception;
 
 abstract class NbtDeserializer
@@ -78,10 +79,7 @@ abstract class NbtDeserializer
      */
     abstract public function readString(): DeserializerStringReadResult;
 
-    /**
-     * @return int
-     */
-    abstract public function getFormat(): int;
+    abstract public function getFormat(): NbtFormat;
 
     /**
      * @return Reader
