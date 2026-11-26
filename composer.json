@@ -21,5 +21,16 @@
     "psr-4": {
       "Aternos\\Nbt\\": "src/"
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^13.4"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Aternos\\Nbt\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
   }
 }
