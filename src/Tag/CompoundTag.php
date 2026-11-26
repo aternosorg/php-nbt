@@ -104,13 +104,14 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         if (is_null($offset) && is_null($value->getName())) {
             throw new Exception("Tags inside a CompoundTag must be named.");
         }
-        if (!is_null($offset)) {
-            $value->setName($offset);
-        } else {
+        if (is_null($offset)) {
             $offset = $value->getName();
         }
-        $value->setParentTag($this);
+        // $value may already be a child under another name, e.g. $compound["new"] = $compound["old"]
+        $this->removeChild($value);
         $this->offsetUnset($offset);
+        $value->setName($offset);
+        $value->setParentTag($this);
         $this->valueArray[] = $value;
     }
 
@@ -189,11 +190,27 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         if($this->isRaw()) {
             throw new Exception("Raw compound tags cannot be modified");
         }
-        foreach ($this->valueArray as $i => $val) {
+        foreach ($this->valueArray as $val) {
             if ($val->getName() === $offset) {
-                $val->setParentTag(null);
-                unset($this->valueArray[$i]);
+                $this->removeChild($val);
                 break;
+            }
+        }
+    }
+
+    /**
+     * Remove $child if it is a child of this tag, compared by identity instead of by name
+     *
+     * @param Tag $child
+     * @return void
+     */
+    protected function removeChild(Tag $child): void
+    {
+        foreach ($this->valueArray as $i => $val) {
+            if ($val === $child) {
+                $child->setParentTag(null);
+                unset($this->valueArray[$i]);
+                return;
             }
         }
     }

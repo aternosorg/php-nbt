@@ -68,6 +68,46 @@ class TagManipulationTest extends TestCase
     /**
      * @throws Exception
      */
+    public function testCompoundMovesChildToNewKey(): void
+    {
+        $compound = new CompoundTag();
+        $compound["a"] = new IntTag()->setValue(1);
+        $compound["b"] = new IntTag()->setValue(2);
+        $moved = $compound["a"];
+        $compound["c"] = $moved;
+
+        $this->assertCount(2, $compound);
+        $this->assertFalse(isset($compound["a"]));
+        $this->assertSame($moved, $compound["c"]);
+        $this->assertSame($compound, $moved->getParentTag());
+        $this->assertSame(["b", "c"], array_keys(iterator_to_array($compound)));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testCompoundMovesChildToExistingKey(): void
+    {
+        $compound = new CompoundTag();
+        $compound["a"] = new IntTag()->setValue(1);
+        $replaced = new IntTag()->setValue(2);
+        $compound["b"] = $replaced;
+        $moved = $compound["a"];
+        $compound["b"] = $moved;
+
+        $this->assertCount(1, $compound);
+        $this->assertSame($moved, $compound["b"]);
+        $this->assertSame($compound, $moved->getParentTag());
+        $this->assertNull($replaced->getParentTag());
+
+        $writer = new StringWriter()->setFormat(NbtFormat::JAVA_EDITION);
+        $compound->write($writer);
+        $this->assertNotSame("", $writer->getStringData());
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testCompoundAppendUsesTagName(): void
     {
         $compound = new CompoundTag();
