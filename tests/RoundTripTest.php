@@ -12,6 +12,7 @@ use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\CompoundTag;
 use Aternos\Nbt\Tag\IntTag;
 use Aternos\Nbt\Tag\ListTag;
+use Aternos\Nbt\Tag\StringTag;
 use Aternos\Nbt\Tag\Tag;
 use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -172,6 +173,96 @@ class RoundTripTest extends TestCase
         $this->expectException(Exception::class);
         // compound named with a declared length of 5, but only 2 bytes follow
         $this->load("\x0a\x00\x05ab", NbtFormat::JAVA_EDITION);
+    }
+
+    public function testTruncatedBedrockStringIsRejected(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Failed to read string");
+        // compound named with a declared little endian length of 5, but only 2 bytes follow
+        $this->load("\x0a\x05\x00ab", NbtFormat::BEDROCK_EDITION);
+    }
+
+    /**
+     * Root compound containing a list "l" whose content type 0x63 does not exist
+     */
+    protected const string UNKNOWN_LIST_CONTENT_TYPE = "\x0a\x00\x00" . "\x09\x00\x01l" . "\x63" . "\x00\x00\x00\x01" . "\x00";
+
+    public function testUnknownListContentTypeIsRejected(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Unknown ListTag content type 99");
+        $this->load(self::UNKNOWN_LIST_CONTENT_TYPE, NbtFormat::JAVA_EDITION);
+    }
+
+    public function testUnknownListContentTypeIsRejectedWhenReadingRaw(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Unknown ListTag content type 99");
+        Tag::loadRaw(new StringReader(self::UNKNOWN_LIST_CONTENT_TYPE, NbtFormat::JAVA_EDITION));
+    }
+
+    public function testUnknownTagTypeIsRejectedWhenReadingRaw(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Unknown NBT tag type 13");
+        Tag::loadRaw(new StringReader("\x0d\x00\x00", NbtFormat::JAVA_EDITION));
+    }
+
+    public function testTagWithoutNameCannotBeWrittenAsNamedTag(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("does not have a name value");
+        new IntTag()->writeData(new StringWriter());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testStringAboveMaximumLengthCannotBeWritten(): void
+    {
+        $root = new CompoundTag()->set("string", new StringTag()->setValue(str_repeat("a", 0x10000)));
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("String exceeds maximum length");
+        $root->write(new StringWriter());
+    }
+
+    #[TestWith([NbtFormat::JAVA_EDITION])]
+    #[TestWith([NbtFormat::BEDROCK_EDITION])]
+    #[TestWith([NbtFormat::BEDROCK_EDITION_NETWORK])]
+    public function testSerializersAndDeserializersReportTheirFormat(int $format): void
+    {
+        $this->assertSame($format, new StringReader("", $format)->getDeserializer()->getFormat());
+        $this->assertSame($format, new StringWriter()->setFormat($format)->getSerializer()->getFormat());
+    }
+
+    public function testChangingReaderFormatReplacesDeserializer(): void
+    {
+        $reader = new StringReader("", NbtFormat::JAVA_EDITION);
+        $reader->getDeserializer();
+        $reader->setFormat(NbtFormat::BEDROCK_EDITION);
+
+        $this->assertSame(NbtFormat::BEDROCK_EDITION, $reader->getFormat());
+        $this->assertSame(NbtFormat::BEDROCK_EDITION, $reader->getDeserializer()->getFormat());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testReaderAndWriterPositions(): void
+    {
+        $writer = new StringWriter();
+        $this->assertSame(0, $writer->tell());
+        $writer->getSerializer()->writeString("ab");
+        $this->assertSame(4, $writer->tell());
+
+        $reader = new StringReader($writer->getStringData(), NbtFormat::JAVA_EDITION);
+        $this->assertFalse($reader->eof());
+        $string = $reader->getDeserializer()->readString();
+        $this->assertSame(4, $reader->tell());
+        $this->assertTrue($reader->eof());
+        $this->assertSame(2, $string->getLength());
+        $this->assertSame(4, $string->getRawLength());
     }
 
     /**
