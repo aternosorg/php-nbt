@@ -227,6 +227,31 @@ class RoundTripTest extends TestCase
         $root->write(new StringWriter());
     }
 
+    /**
+     * @throws Exception
+     */
+    public function testJavaStringAboveMaximumLengthAfterEncodingCannotBeWritten(): void
+    {
+        // each NUL is one byte in UTF-8, but two bytes in Java's modified UTF-8
+        $root = new CompoundTag()->set("string", new StringTag()->setValue(str_repeat("\0", 0x8000)));
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("String of 65536 bytes exceeds maximum length of 65535 bytes");
+        $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
+    }
+
+    /**
+     * @throws Exception
+     */
+    #[TestWith([NbtFormat::JAVA_EDITION])]
+    #[TestWith([NbtFormat::BEDROCK_EDITION])]
+    public function testTagNameAboveMaximumLengthCannotBeWritten(int $format): void
+    {
+        $root = new CompoundTag()->set(str_repeat("a", 0x10000), new IntTag());
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("String of 65536 bytes exceeds maximum length of 65535 bytes");
+        $root->write(new StringWriter()->setFormat($format));
+    }
+
     #[TestWith([NbtFormat::JAVA_EDITION])]
     #[TestWith([NbtFormat::BEDROCK_EDITION])]
     #[TestWith([NbtFormat::BEDROCK_EDITION_NETWORK])]

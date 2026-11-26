@@ -30,6 +30,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeStringLengthPrefix(int $value): static
     {
+        $this->checkStringLength($value, 0xffff);
         $this->getWriter()->write(Binary::writeLShort($value));
         return $this;
     }
