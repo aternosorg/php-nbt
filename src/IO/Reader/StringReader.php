@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\IO\Reader;
 
+use Override;
+
 class StringReader extends AbstractReader
 {
     protected string $data;
@@ -17,9 +19,7 @@ class StringReader extends AbstractReader
         $this->length = strlen($data);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function read(int $length): string
     {
         $length = min($length, $this->length - $this->ptr);
@@ -28,33 +28,25 @@ class StringReader extends AbstractReader
         return substr($this->data, $oldPtr, $length);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function eof(): bool
     {
         return $this->ptr >= $this->length;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function tell(): int
     {
         return $this->ptr;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getFormat(): int
     {
         return $this->format;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function returnData(string $data): void
     {
         $this->ptr -= strlen($data);

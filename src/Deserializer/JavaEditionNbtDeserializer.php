@@ -9,65 +9,52 @@ use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
 use Aternos\Nbt\String\StringDataFormatException;
 use Aternos\Nbt\IO\Binary;
+use Override;
 
 class JavaEditionNbtDeserializer extends NbtDeserializer
 {
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getFormat(): int
     {
         return NbtFormat::JAVA_EDITION;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readLengthPrefix(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(4);
         return new DeserializerIntReadResult(Binary::readInt($raw), $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readStringLengthPrefix(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(2);
         return new DeserializerIntReadResult(Binary::readShort($raw), $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readByte(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(1);
         return new DeserializerIntReadResult(Binary::readSignedByte($raw), $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readShort(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(2);
         return new DeserializerIntReadResult(Binary::readSignedShort($raw), $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readInt(): DeserializerIntReadResult
     {
         $raw = $this->getReader()->read(4);
         return new DeserializerIntReadResult(Binary::readInt($raw), $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readLong(): DeserializerIntReadResult
     {
         $raw = $this->readRawLong();
@@ -75,18 +62,14 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
         return new DeserializerIntReadResult($value, $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readFloat(): DeserializerFloatReadResult
     {
         $raw = $this->getReader()->read(4);
         return new DeserializerFloatReadResult(Binary::readFloat($raw), $raw);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readDouble(): DeserializerFloatReadResult
     {
         $raw = $this->getReader()->read(8);
@@ -94,9 +77,9 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
     }
 
     /**
-     * @inheritDoc
      * @throws StringDataFormatException
      */
+    #[Override]
     public function readString(): DeserializerStringReadResult
     {
         $length = $this->readStringLengthPrefix();

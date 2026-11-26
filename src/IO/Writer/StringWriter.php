@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\IO\Writer;
 
+use Override;
+
 class StringWriter extends AbstractWriter
 {
     protected string $data = "";
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function write(string $data): void
     {
         $this->data .= $data;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function tell(): int
     {
         return strlen($this->data);

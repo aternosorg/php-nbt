@@ -7,6 +7,7 @@ namespace Aternos\Nbt\Tag;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Exception;
+use Override;
 
 class StringTag extends Tag
 {
@@ -67,9 +68,9 @@ class StringTag extends Tag
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function writeContent(Writer $writer): static
     {
         $length = strlen($this->value);
@@ -80,52 +81,40 @@ class StringTag extends Tag
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function readContent(Reader $reader): static
     {
         $this->value = $reader->getDeserializer()->readString()->getValue();
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         $length = $reader->getDeserializer()->readStringLengthPrefix();
         return $length->getRawData() . $reader->read($length->getValue());
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         return "'" . str_replace("\n", "\\n", $this->value) . "'";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function jsonSerialize(): string
     {
         return $this->value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function equals(Tag $tag): bool
     {
         return $tag instanceof StringTag && $this->getType() === $tag->getType() &&
             $tag->getValue() === $this->getValue();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return static::encodeSNBTString($this->value);

@@ -6,47 +6,38 @@ namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\IO\Binary;
+use Override;
 
 class BedrockEditionNetworkNbtSerializer extends BedrockEditionNbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getFormat(): int
     {
         return NbtFormat::BEDROCK_EDITION_NETWORK;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLengthPrefix(int $value): static
     {
         $this->getWriter()->write(Binary::writeVarInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeStringLengthPrefix(int $value): static
     {
         $this->getWriter()->write(Binary::writeUnsignedVarInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeInt(int $value): static
     {
         $this->getWriter()->write(Binary::writeVarInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLong(int $value): static
     {
         $this->getWriter()->write(Binary::writeVarLong($value));

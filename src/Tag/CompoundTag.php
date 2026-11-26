@@ -10,6 +10,7 @@ use Aternos\Nbt\IO\Writer\Writer;
 use Countable;
 use Exception;
 use Iterator;
+use Override;
 
 class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 {
@@ -31,9 +32,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function writeContent(Writer $writer): static
     {
         if($this->isRaw()) {
@@ -57,9 +58,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     protected function readContent(Reader $reader): static
     {
         if($this->options->shouldBeReadRaw($this)) {
@@ -74,9 +75,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         $result = "";
@@ -89,9 +90,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @param Tag $value
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function offsetSet($offset, $value): void
     {
         if (!($value instanceof Tag) || $value instanceof EndTag) {
@@ -117,49 +118,37 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         $this->valueArray[] = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function current(): bool|Tag
     {
         return current($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function next(): void
     {
         next($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function key(): ?string
     {
         return $this->current()->getName();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function valid(): bool
     {
         return current($this->valueArray) !== false;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function rewind(): void
     {
         reset($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetExists($offset): bool
     {
         foreach ($this->valueArray as $val) {
@@ -170,9 +159,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetGet($offset): ?Tag
     {
         foreach ($this->valueArray as $val) {
@@ -184,9 +171,9 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function offsetUnset($offset): void
     {
         if($this->isRaw()) {
@@ -217,17 +204,13 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function count(): int
     {
         return count($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         if($this->isRaw()) {
@@ -238,9 +221,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
             "\n}";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function jsonSerialize(): array
     {
         $data = [];
@@ -411,9 +392,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         return $tag instanceof StringTag ? $tag : null;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     function equals(Tag $tag): bool
     {
         if ($tag === $this) {
@@ -434,9 +413,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         $data = [];

@@ -6,20 +6,17 @@ namespace Aternos\Nbt\Deserializer;
 
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\IO\Binary;
+use Override;
 
 class BedrockEditionNetworkNbtDeserializer extends BedrockEditionNbtDeserializer
 {
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getFormat(): int
     {
         return NbtFormat::BEDROCK_EDITION_NETWORK;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readLengthPrefix(): DeserializerIntReadResult
     {
         $reader = $this->getReader();
@@ -30,9 +27,7 @@ class BedrockEditionNetworkNbtDeserializer extends BedrockEditionNbtDeserializer
         return new DeserializerIntReadResult($value, substr($raw, 0, $offset));
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readStringLengthPrefix(): DeserializerIntReadResult
     {
         $reader = $this->getReader();
@@ -43,9 +38,7 @@ class BedrockEditionNetworkNbtDeserializer extends BedrockEditionNbtDeserializer
         return new DeserializerIntReadResult($value, substr($raw, 0, $offset));
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readInt(): DeserializerIntReadResult
     {
         $reader = $this->getReader();
@@ -56,9 +49,7 @@ class BedrockEditionNetworkNbtDeserializer extends BedrockEditionNbtDeserializer
         return new DeserializerIntReadResult($value, substr($raw, 0, $offset));
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function readLong(): DeserializerIntReadResult
     {
         $reader = $this->getReader();

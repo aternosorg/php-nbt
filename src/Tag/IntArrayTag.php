@@ -6,14 +6,13 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Override;
 
 class IntArrayTag extends ArrayValueTag
 {
     public const TYPE = TagType::TAG_Int_Array;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function writeValues(Writer $writer): string
     {
         foreach ($this->valueArray as $value) {
@@ -22,9 +21,7 @@ class IntArrayTag extends ArrayValueTag
         return "";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function readValues(Reader $reader, int $length): array
     {
         $values = [];
@@ -34,9 +31,7 @@ class IntArrayTag extends ArrayValueTag
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readValuesRaw(Reader $reader, int $length): string
     {
         $result = "";
@@ -46,25 +41,19 @@ class IntArrayTag extends ArrayValueTag
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayValue($value): bool
     {
         return is_int($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayKey($offset): bool
     {
         return is_int($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         $values = [];

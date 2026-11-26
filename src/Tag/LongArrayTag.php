@@ -6,6 +6,7 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Override;
 
 class LongArrayTag extends ArrayValueTag
 {
@@ -13,9 +14,7 @@ class LongArrayTag extends ArrayValueTag
 
     public const TYPE = TagType::TAG_Long_Array;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function writeValues(Writer $writer): string
     {
         if ($this->rawValueValid($writer->getFormat())) {
@@ -28,9 +27,7 @@ class LongArrayTag extends ArrayValueTag
         return "";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function readValues(Reader $reader, int $length): array
     {
         $raw = "";
@@ -45,9 +42,7 @@ class LongArrayTag extends ArrayValueTag
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readValuesRaw(Reader $reader, int $length): string
     {
         $raw = "";
@@ -57,43 +52,33 @@ class LongArrayTag extends ArrayValueTag
         return $raw;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayValue($value): bool
     {
         return is_int($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetSet($offset, $value): void
     {
         $this->resetRawValue();
         parent::offsetSet($offset, $value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetUnset($offset): void
     {
         $this->resetRawValue();
         parent::offsetUnset($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayKey($offset): bool
     {
         return is_int($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         $values = [];

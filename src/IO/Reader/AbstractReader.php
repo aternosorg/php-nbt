@@ -6,15 +6,14 @@ namespace Aternos\Nbt\IO\Reader;
 
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Override;
 
 abstract class AbstractReader implements Reader
 {
     protected int $format = NbtFormat::JAVA_EDITION;
     protected ?NbtDeserializer $deserializer = null;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getDeserializer(): NbtDeserializer
     {
         if (is_null($this->deserializer)) {
@@ -26,6 +25,7 @@ abstract class AbstractReader implements Reader
     /**
      * @return int
      */
+    #[Override]
     public function getFormat(): int
     {
         return $this->format;

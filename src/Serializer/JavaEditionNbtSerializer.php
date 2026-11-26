@@ -8,29 +8,24 @@ use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
 use Aternos\Nbt\IO\Binary;
+use Override;
 
 class JavaEditionNbtSerializer extends NbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getFormat(): int
     {
         return NbtFormat::JAVA_EDITION;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLengthPrefix(int $value): static
     {
         $this->getWriter()->write(Binary::writeInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeStringLengthPrefix(int $value): static
     {
         $this->checkStringLength($value, 0xffff);
@@ -38,36 +33,28 @@ class JavaEditionNbtSerializer extends NbtSerializer
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeByte(int $value): static
     {
         $this->getWriter()->write(Binary::writeByte($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeShort(int $value): static
     {
         $this->getWriter()->write(Binary::writeShort($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeInt(int $value): static
     {
         $this->getWriter()->write(Binary::writeInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLong(int $value): static
     {
         $packed = pack("q", $value);
@@ -75,27 +62,21 @@ class JavaEditionNbtSerializer extends NbtSerializer
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeFloat(float $value): static
     {
         $this->getWriter()->write(Binary::writeFloat($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeDouble(float $value): static
     {
         $this->getWriter()->write(Binary::writeDouble($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeString(string $value): static
     {
         $encoded = JavaEncoding::getInstance()->encode($value);

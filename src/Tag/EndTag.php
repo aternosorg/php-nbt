@@ -6,70 +6,55 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Override;
 
 class EndTag extends Tag
 {
     public const TYPE = TagType::TAG_End;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeContent(Writer $writer): static
     {
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function readContent(Reader $reader): static
     {
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         return "";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public static function canBeNamed(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         return "";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function jsonSerialize(): mixed
     {
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     function equals(Tag $tag): bool
     {
         return $tag->getType() === $this->getType();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return "";

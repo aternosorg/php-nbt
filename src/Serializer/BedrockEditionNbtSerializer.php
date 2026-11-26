@@ -7,29 +7,24 @@ namespace Aternos\Nbt\Serializer;
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\IO\Binary;
+use Override;
 
 class BedrockEditionNbtSerializer extends NbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getFormat(): int
     {
         return NbtFormat::BEDROCK_EDITION;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLengthPrefix(int $value): static
     {
         $this->getWriter()->write(Binary::writeLInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeStringLengthPrefix(int $value): static
     {
         $this->checkStringLength($value, 0xffff);
@@ -37,36 +32,28 @@ class BedrockEditionNbtSerializer extends NbtSerializer
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeByte(int $value): static
     {
         $this->getWriter()->write(Binary::writeByte($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeShort(int $value): static
     {
         $this->getWriter()->write(Binary::writeLShort($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeInt(int $value): static
     {
         $this->getWriter()->write(Binary::writeLInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLong(int $value): static
     {
         $packed = pack("q", $value);
@@ -74,27 +61,21 @@ class BedrockEditionNbtSerializer extends NbtSerializer
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeFloat(float $value): static
     {
         $this->getWriter()->write(Binary::writeLFloat($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeDouble(float $value): static
     {
         $this->getWriter()->write(Binary::writeLDouble($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeString(string $value): static
     {
         $this->writeStringLengthPrefix(strlen($value));

@@ -6,15 +6,14 @@ namespace Aternos\Nbt\IO\Writer;
 
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Serializer\NbtSerializer;
+use Override;
 
 abstract class AbstractWriter implements Writer
 {
     protected int $format = NbtFormat::JAVA_EDITION;
     protected ?NbtSerializer $serializer = null;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getSerializer(): NbtSerializer
     {
         if (is_null($this->serializer)) {
@@ -26,6 +25,7 @@ abstract class AbstractWriter implements Writer
     /**
      * @return int
      */
+    #[Override]
     public function getFormat(): int
     {
         return $this->format;

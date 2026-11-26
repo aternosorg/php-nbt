@@ -7,14 +7,13 @@ namespace Aternos\Nbt\Tag;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Exception;
+use Override;
 
 class ByteArrayTag extends ArrayValueTag
 {
     public const TYPE = TagType::TAG_Byte_Array;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function writeValues(Writer $writer): string
     {
         foreach ($this->valueArray as $val) {
@@ -24,9 +23,9 @@ class ByteArrayTag extends ArrayValueTag
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     protected function readValues(Reader $reader, int $length): array
     {
         $values = [];
@@ -36,9 +35,7 @@ class ByteArrayTag extends ArrayValueTag
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readValuesRaw(Reader $reader, int $length): string
     {
         $result = "";
@@ -48,25 +45,19 @@ class ByteArrayTag extends ArrayValueTag
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayValue($value): bool
     {
         return is_int($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayKey($offset): bool
     {
         return is_int($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         $values = array_map(
@@ -79,9 +70,7 @@ class ByteArrayTag extends ArrayValueTag
         return $this->count() . " byte" . ($this->count() === 1 ? "" : "s") . " [" . implode(" ", $values) . "]";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         $values = [];

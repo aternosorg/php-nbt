@@ -7,6 +7,7 @@ namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Override;
 
 class LongTag extends IntValueTag
 {
@@ -14,9 +15,7 @@ class LongTag extends IntValueTag
 
     public const TYPE = TagType::TAG_Long;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeContent(Writer $writer): static
     {
         if ($this->rawValueValid($writer->getFormat())) {
@@ -27,9 +26,7 @@ class LongTag extends IntValueTag
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function readContent(Reader $reader): static
     {
         $result = $reader->getDeserializer()->readLong();
@@ -38,26 +35,20 @@ class LongTag extends IntValueTag
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         return $reader->getDeserializer()->readLong()->getRawData();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function setValue(int $value): static
     {
         $this->resetRawValue();
         return parent::setValue($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return $this->value . "L";

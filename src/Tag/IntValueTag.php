@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Override;
+
 abstract class IntValueTag extends Tag
 {
     protected int $value = 0;
@@ -26,25 +28,19 @@ abstract class IntValueTag extends Tag
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         return strval($this->value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function jsonSerialize(): int
     {
         return $this->value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function equals(Tag $tag): bool
     {
         return $tag instanceof IntValueTag && $this->getType() === $tag->getType() &&

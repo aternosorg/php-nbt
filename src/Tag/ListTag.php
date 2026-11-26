@@ -7,6 +7,7 @@ namespace Aternos\Nbt\Tag;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Exception;
+use Override;
 
 class ListTag extends ArrayValueTag
 {
@@ -17,9 +18,7 @@ class ListTag extends ArrayValueTag
     protected ?string $rawContent = null;
     protected ?int $rawContentFormat = null;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeContent(Writer $writer): static
     {
         $writer->getSerializer()->writeByte($this->contentTagType);
@@ -37,9 +36,7 @@ class ListTag extends ArrayValueTag
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function writeValues(Writer $writer): string
     {
         /** @var Tag $value */
@@ -79,9 +76,9 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     protected function readValues(Reader $reader, int $length): array
     {
         $values = [];
@@ -96,9 +93,7 @@ class ListTag extends ArrayValueTag
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayValue($value): bool
     {
         if (!($value instanceof Tag)) {
@@ -112,9 +107,9 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     protected function readContent(Reader $reader): static
     {
         $this->contentTagType = $reader->getDeserializer()->readByte()->getValue();
@@ -131,9 +126,9 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         $contentTagType = $reader->getDeserializer()->readByte();
@@ -175,25 +170,19 @@ class ListTag extends ArrayValueTag
         return $this->rawContent !== null;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function checkArrayKey($offset): bool
     {
         return is_int($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getTagTypeString(): string
     {
         return parent::getTagTypeString() . "<" . TagType::NAMES[$this->contentTagType] . ">";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetSet($offset, $value): void
     {
         if ($this->isRaw()) {
@@ -212,9 +201,9 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function offsetUnset($offset): void
     {
         if ($this->isRaw()) {
@@ -227,9 +216,7 @@ class ListTag extends ArrayValueTag
         parent::offsetUnset($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function equals(Tag $tag): bool
     {
         if ($tag === $this) {
@@ -251,9 +238,7 @@ class ListTag extends ArrayValueTag
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         if ($this->isRaw()) {
@@ -262,9 +247,7 @@ class ListTag extends ArrayValueTag
         return parent::getValueString();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         $values = [];

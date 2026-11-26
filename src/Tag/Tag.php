@@ -10,6 +10,7 @@ use Aternos\Nbt\NbtFormat;
 use BadMethodCallException;
 use Exception;
 use JsonSerializable;
+use Override;
 
 abstract class Tag implements JsonSerializable
 {
@@ -254,6 +255,7 @@ abstract class Tag implements JsonSerializable
     /**
      * @return string
      */
+    #[Override]
     public function __toString(): string
     {
         return $this->getTagTypeString() . "('" . ($this->getName() ?: "None") . "'): " . $this->getValueString();

@@ -11,15 +11,16 @@ use BadMethodCallException;
 use Countable;
 use Exception;
 use Iterator;
+use Override;
 
 abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Countable
 {
     protected array $valueArray = [];
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function writeContent(Writer $writer): static
     {
         $count = $this->count();
@@ -31,9 +32,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function readContent(Reader $reader): static
     {
         $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
@@ -41,9 +40,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         $length = $reader->getDeserializer()->readLengthPrefix();
@@ -82,66 +79,52 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      */
     abstract protected function checkArrayValue($value): bool;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function current(): mixed
     {
         return current($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function next(): void
     {
         next($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function key(): string|int|null
     {
         return key($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function valid(): bool
     {
         return current($this->valueArray) !== false;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function rewind(): void
     {
         reset($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetExists($offset): bool
     {
         return array_key_exists($offset, $this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetGet($offset): mixed
     {
         return $this->valueArray[$offset];
     }
 
     /**
-     * @inheritDoc
      * @throws Exception
      */
+    #[Override]
     public function offsetSet($offset, $value): void
     {
         if (!$this->checkArrayValue($value)) {
@@ -157,17 +140,13 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
         $this->valueArray[$offset] = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function offsetUnset($offset): void
     {
         unset($this->valueArray[$offset]);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function count(): int
     {
         return count($this->valueArray);
@@ -179,9 +158,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      */
     abstract protected function checkArrayKey($offset): bool;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n[\n" .
@@ -189,17 +166,13 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
             "\n]";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function jsonSerialize(): array
     {
         return $this->valueArray;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function equals(Tag $tag): bool
     {
         if ($tag === $this) {
