@@ -1,60 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\Deserializer\DeserializerFloatReadResult;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\Serializer\NbtSerializer;
+use Override;
 
 class FloatTag extends FloatValueTag
 {
-    use RawValueTag;
+    public const TagType TYPE = TagType::Float;
 
-    public const TYPE = TagType::TAG_Float;
-
-    /**
-     * @inheritDoc
-     */
-    public function writeContent(Writer $writer): static
+    #[Override]
+    public function getType(): TagType
     {
-        if ($this->rawValueValid($writer->getFormat())) {
-            $writer->write($this->rawValue);
-            return $this;
-        }
-        $writer->getSerializer()->writeFloat($this->value);
-        return $this;
+        return self::TYPE;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    protected static function readNumber(NbtDeserializer $deserializer): DeserializerFloatReadResult
     {
-        $result = $reader->getDeserializer()->readFloat();
-        $this->setRawDataFromSerializer($result, $reader->getFormat());
-        $this->value = $result->getValue();
-        return $this;
+        return $deserializer->readFloat();
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    #[Override]
+    protected static function writeNumber(NbtSerializer $serializer, float $value): void
     {
-        return $reader->getDeserializer()->readFloat()->getRawData();
+        $serializer->writeFloat($value);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setValue(float $value): static
-    {
-        $this->resetRawValue();
-        return parent::setValue($value);
-    }
-
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return $this->value . "f";

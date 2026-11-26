@@ -1,50 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\IO\Reader;
 
 use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\NbtFormat;
 
 interface Reader
 {
     /**
-     * Read data
-     *
-     * @param int $length
-     * @return string
+     * Read up to $length bytes, fewer if the end of the data is reached
      */
     public function read(int $length): string;
 
     /**
      * Check if all input data has been consumed
-     *
-     * @return bool
      */
     public function eof(): bool;
 
     /**
      * Get cursor position
-     *
-     * @return int
      */
     public function tell(): int;
 
     /**
-     * NBT file format
-     * NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, or NbtFormat::BEDROCK_EDITION_NETWORK
-     *
-     * @return int
+     * NBT format flavor of the data
      */
-    public function getFormat(): int;
+    public function getFormat(): NbtFormat;
 
     /**
      * Return unused data to the reader buffer
-     *
-     * @param string $data
      */
     public function returnData(string $data): void;
 
-    /**
-     * @return NbtDeserializer
-     */
     public function getDeserializer(): NbtDeserializer;
 }

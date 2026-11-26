@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\String;
+
+use Aternos\Nbt\Exception\StringDataFormatException;
 
 /**
  * https://py2jdbc.readthedocs.io/en/latest/mutf8.html
@@ -8,51 +12,41 @@ namespace Aternos\Nbt\String;
  * https://docs.oracle.com/javase/6/docs/api/java/io/DataInput.html#readUTF%28%29
  * Good luck
  */
-class JavaEncoding
+final class JavaEncoding
 {
-    protected static ?JavaEncoding $instance = null;
-
     /**
-     * @return static
+     * Convert a string to Java's modified UTF-8
+     *
+     * @throws StringDataFormatException if $string is not valid in $sourceEncoding
      */
-    static function getInstance(): static
-    {
-        if (static::$instance === null) {
-            static::$instance = new static();
-        }
-        return static::$instance;
-    }
-
-    /**
-     * @param string $string
-     * @param string $sourceEncoding
-     * @return string
-     */
-    public function encode(string $string, string $sourceEncoding = "UTF-8"): string
+    public static function encode(string $string, string $sourceEncoding = "UTF-8"): string
     {
         $result = "";
 
         $chars = mb_str_split($string, 1, $sourceEncoding);
         foreach ($chars as $char) {
             $c = mb_ord($char, $sourceEncoding);
+            if ($c === false) {
+                throw new StringDataFormatException("Invalid " . $sourceEncoding . " character " . bin2hex($char) . " in string");
+            }
 
-            if($c === 0) {
+            if ($c === 0) {
                 $result .= "\xC0\x80";
                 continue;
             }
 
-            if($c <= 0x7F) {
+            if ($c <= 0x7F) {
                 $result .= chr($c);
                 continue;
             }
 
-            if($c <= 0x7FF) {
+            if ($c <= 0x7FF) {
                 $result .= chr(0xC0 | (0x1F & ($c >> 0x06)));
                 $result .= chr(0x80 | (0x3F & $c));
                 continue;
             }
 
-            if($c <= 0xFFFF) {
+            if ($c <= 0xFFFF) {
                 $result .= chr(0xE0 | (0x0F & ($c >> 0x0C)));
                 $result .= chr(0x80 | (0x3F & ($c >> 0x06)));
                 $result .= chr(0x80 | (0x3F & $c));
@@ -71,9 +65,11 @@ class JavaEncoding
     }
 
     /**
+     * Convert Java's modified UTF-8 to a string in $outputEncoding
+     *
      * @throws StringDataFormatException
      */
-    public function decode(string $string, string $outputEncoding = "UTF-8"): string
+    public static function decode(string $string, string $outputEncoding = "UTF-8"): string
     {
         $result = "";
         for ($i = 0; $i < strlen($string); $i++) {

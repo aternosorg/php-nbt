@@ -1,214 +1,141 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
-use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\IO\Writer\Writer;
-use BadMethodCallException;
+use ArrayIterator;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
 use Countable;
-use Exception;
-use Iterator;
+use IteratorAggregate;
+use Override;
 
-abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Countable
+/**
+ * Base class for tags that hold a list of values (TAG_List and the number array tags)
+ *
+ * Values are always stored as a list: unsetting an entry moves all following entries one index down.
+ *
+ * @template TValue
+ * @implements IteratorAggregate<int, TValue>
+ * @implements ArrayAccess<int, TValue>
+ */
+abstract class ArrayValueTag extends Tag implements IteratorAggregate, ArrayAccess, Countable
 {
+    /**
+     * Maximum number of entries, limited by the signed 32-bit length prefix
+     */
+    public const int MAX_LENGTH = 0x7fffffff;
+
+    /**
+     * @var list<TValue>
+     */
     protected array $valueArray = [];
 
     /**
-     * @inheritDoc
-     * @throws Exception
+     * @phpstan-assert-if-true TValue $value
      */
-    public function writeContent(Writer $writer): static
+    abstract protected function isValidValue(mixed $value): bool;
+
+    /**
+     * @throws InvalidTagValueException
+     */
+    protected function checkLength(int $length): void
     {
-        $count = $this->count();
-        if ($count > 0x7fffffff) {
-            throw new Exception("Array exceeds maximum length of " . 0x7fffffff . " entries");
+        if ($length > static::MAX_LENGTH) {
+            throw new InvalidTagValueException($this->getType()->getName() . " exceeds maximum length of " . static::MAX_LENGTH . " entries");
         }
-        $writer->getSerializer()->writeLengthPrefix($count);
-        $this->writeValues($writer);
-        return $this;
     }
 
     /**
-     * @inheritDoc
+     * @return ArrayIterator<int, TValue>
      */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    public function getIterator(): ArrayIterator
     {
-        $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
-        $this->valueArray = $this->readValues($reader, $length);
-        return $this;
+        return new ArrayIterator($this->valueArray);
+    }
+
+    #[Override]
+    public function offsetExists(mixed $offset): bool
+    {
+        return is_int($offset) && array_key_exists($offset, $this->valueArray);
     }
 
     /**
-     * @inheritDoc
+     * @return TValue|null
      */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    #[Override]
+    public function offsetGet(mixed $offset): mixed
     {
-        $length = $reader->getDeserializer()->readLengthPrefix();
-        $valueData = static::readValuesRaw($reader, $length->getValue());
-        return $length->getRawData() . $valueData;
-    }
-
-    /**
-     * @param Writer $writer
-     * @return string
-     */
-    abstract protected function writeValues(Writer $writer): string;
-
-    /**
-     * @param Reader $reader
-     * @param int $length
-     * @return array
-     */
-    abstract protected function readValues(Reader $reader, int $length): array;
-
-    /**
-     * @param Reader $reader
-     * @param int $length
-     * @return string
-     */
-    protected static function readValuesRaw(Reader $reader, int $length): string
-    {
-        throw new BadMethodCallException("Not implemented");
-    }
-
-    /**
-     * @param $value
-     * @return bool
-     */
-    abstract protected function checkArrayValue($value): bool;
-
-    /**
-     * @inheritDoc
-     */
-    public function current(): mixed
-    {
-        return current($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function next(): void
-    {
-        next($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function key(): string|int|null
-    {
-        return key($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function valid(): bool
-    {
-        return current($this->valueArray) !== false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function rewind(): void
-    {
-        reset($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetExists($offset): bool
-    {
-        return array_key_exists($offset, $this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetGet($offset): mixed
-    {
-        return $this->valueArray[$offset];
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    public function offsetSet($offset, $value): void
-    {
-        if (!$this->checkArrayValue($value)) {
-            throw new Exception("Invalid array value");
+        if (!is_int($offset)) {
+            return null;
         }
-        if (is_null($offset)) {
+        return $this->valueArray[$offset] ?? null;
+    }
+
+    /**
+     * @param int|null $offset an existing index to replace a value, the current length or null to append
+     * @throws NbtException
+     */
+    #[Override]
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        if (!$this->isValidValue($value)) {
+            throw new InvalidTagValueException("Invalid value of type " . get_debug_type($value) . " for " . $this->getType()->getName());
+        }
+        $count = count($this->valueArray);
+        if ($offset === null || $offset === $count) {
+            $this->checkLength($count + 1);
             $this->valueArray[] = $value;
             return;
         }
-        if (!$this->checkArrayKey($offset)) {
-            throw new Exception("Invalid array offset " . $offset);
+        if (!is_int($offset) || $offset < 0 || $offset >= $count) {
+            throw new InvalidTagValueException("Invalid offset " . var_export($offset, true) . " for " . $this->getType()->getName() .
+                " with " . $count . " entries");
         }
-        $this->valueArray[$offset] = $value;
+        array_splice($this->valueArray, $offset, 1, [$value]);
     }
 
     /**
-     * @inheritDoc
+     * @throws NbtException
      */
-    public function offsetUnset($offset): void
+    #[Override]
+    public function offsetUnset(mixed $offset): void
     {
-        unset($this->valueArray[$offset]);
+        if (!is_int($offset) || !array_key_exists($offset, $this->valueArray)) {
+            return;
+        }
+        array_splice($this->valueArray, $offset, 1);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function count(): int
     {
         return count($this->valueArray);
     }
 
     /**
-     * @param $offset
-     * @return bool
+     * @return list<string> human-readable representation of each entry
      */
-    abstract protected function checkArrayKey($offset): bool;
+    abstract protected function getEntryStrings(): array;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
-        return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n[\n" .
-            $this->indent(implode(", \n", array_map(strval(...), $this->valueArray))) .
+        $count = $this->count();
+        return $count . " entr" . ($count === 1 ? "y" : "ies") . "\n[\n" .
+            $this->indent(implode(", \n", $this->getEntryStrings())) .
             "\n]";
     }
 
     /**
-     * @inheritDoc
+     * @return list<TValue>
      */
+    #[Override]
     public function jsonSerialize(): array
     {
         return $this->valueArray;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function equals(Tag $tag): bool
-    {
-        if ($tag === $this) {
-            return true;
-        }
-        if (!$tag instanceof ArrayValueTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
-            return false;
-        }
-        foreach ($this as $i => $val) {
-            if ($val !== $tag[$i]) {
-                return false;
-            }
-        }
-        return true;
     }
 }

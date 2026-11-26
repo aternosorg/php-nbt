@@ -1,274 +1,249 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\Exception\RawTagModificationException;
+use Aternos\Nbt\Exception\UnknownTagTypeException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
-use Exception;
+use Aternos\Nbt\NbtFormat;
+use Override;
 
+/**
+ * A list of unnamed tags that all have the same type
+ *
+ * @extends ArrayValueTag<Tag>
+ */
 class ListTag extends ArrayValueTag
 {
-    public const TYPE = TagType::TAG_List;
-    protected int $contentTagType = TagType::TAG_End;
+    public const TagType TYPE = TagType::List;
+
+    /**
+     * Type of the list entries, TagType::End for an empty list without a type
+     */
+    protected TagType $contentType = TagType::End;
 
     protected ?int $rawContentLength = null;
     protected ?string $rawContent = null;
-    protected ?int $rawContentFormat = null;
+    protected ?NbtFormat $rawContentFormat = null;
 
-    /**
-     * @inheritDoc
-     */
-    public function writeContent(Writer $writer): static
+    #[Override]
+    public function getType(): TagType
     {
-        $writer->getSerializer()->writeByte($this->contentTagType);
-        if ($this->isRaw()) {
-            if($this->rawContentFormat !== $writer->getFormat()) {
-                throw new Exception("Cannot change format of raw list tag");
-            }
-
-            $writer->getSerializer()->writeLengthPrefix($this->rawContentLength);
-            $writer->write($this->rawContent);
-        } else {
-            $writer->getSerializer()->writeLengthPrefix($this->count());
-            $this->writeValues($writer);
-        }
-        return $this;
+        return self::TYPE;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function writeValues(Writer $writer): string
-    {
-        /** @var Tag $value */
-        foreach ($this->valueArray as $value) {
-            $value->writeContent($writer);
-        }
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getContentTag(): int
-    {
-        return $this->contentTagType;
-    }
-
-    /**
-     * @param int $contentTagType
-     * @return $this
-     * @throws Exception
-     */
-    public function setContentTag(int $contentTagType): static
-    {
-        if ($this->isRaw()) {
-            throw new Exception("Raw list tags cannot be modified");
-        }
-
-        /** @var Tag $value */
-        foreach ($this->valueArray as $value) {
-            if ($value::TYPE !== $contentTagType) {
-                throw new Exception("New list content type is incompatible with its values");
-            }
-        }
-        $this->contentTagType = $contentTagType;
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    protected function readValues(Reader $reader, int $length): array
-    {
-        $values = [];
-        /** @var class-string<Tag>|null $tagClass */
-        $tagClass = Tag::getTagClass($this->contentTagType);
-        if (is_null($tagClass)) {
-            throw new Exception("Unknown ListTag content type " . $this->contentTagType);
-        }
-        for ($i = 0; $i < $length; $i++) {
-            $values[] = (new $tagClass($this->options))->setParentTag($this)->read($reader, false);
-        }
-        return $values;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function checkArrayValue($value): bool
-    {
-        if (!($value instanceof Tag)) {
-            return false;
-        }
-        if ($this->count() === 0 && $this->contentTagType === TagType::TAG_End) {
-            $this->contentTagType = $value::TYPE;
-            return true;
-        }
-        return $value::TYPE === $this->contentTagType;
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    protected function readContent(Reader $reader): static
-    {
-        $this->contentTagType = $reader->getDeserializer()->readByte()->getValue();
-        $length = $reader->getDeserializer()->readLengthPrefix()->getValue();
-        $maxLength = $this->options->getMaxListTagLength();
-        if ($maxLength !== null && $length > $maxLength) {
-            $this->rawContentFormat = $reader->getFormat();
-            $this->rawContentLength = $length;
-            $this->rawContent = static::readValueTagsRaw($reader, $this->options, $this->contentTagType, $length);
-            return $this;
-        }
-        $this->valueArray = $this->readValues($reader, $length);
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
-    {
-        $contentTagType = $reader->getDeserializer()->readByte();
-        $length = $reader->getDeserializer()->readLengthPrefix();
-
-        return $contentTagType->getRawData() . $length->getRawData() .
-            static::readValueTagsRaw($reader, $options, $contentTagType->getValue(), $length->getValue());
-    }
-
-    /**
-     * @param Reader $reader
-     * @param TagOptions $options
-     * @param int $contentType
-     * @param int $length
-     * @return string
-     * @throws Exception
-     */
-    protected static function readValueTagsRaw(Reader $reader, TagOptions $options, int $contentType, int $length): string
-    {
-        $valueData = "";
-
-        /** @var class-string<Tag>|null $tagClass */
-        $tagClass = Tag::getTagClass($contentType);
-        if (is_null($tagClass)) {
-            throw new Exception("Unknown ListTag content type " . $contentType);
-        }
-        for ($i = 0; $i < $length; $i++) {
-            $valueData .= $tagClass::readRaw($reader, $options, false);
-        }
-
-        return $valueData;
-    }
-
-    /**
-     * @return bool
-     */
     public function isRaw(): bool
     {
         return $this->rawContent !== null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function checkArrayKey($offset): bool
+    public function getContentType(): TagType
     {
-        return is_int($offset);
+        return $this->contentType;
     }
 
     /**
-     * @inheritDoc
+     * Setting the content type is only necessary for empty lists,
+     * otherwise it is set automatically when the first entry is added
+     *
+     * @throws NbtException if the list is raw or contains entries of a different type
      */
-    protected function getTagTypeString(): string
+    public function setContentType(TagType $contentType): static
     {
-        return parent::getTagTypeString() . "<" . TagType::NAMES[$this->contentTagType] . ">";
+        $this->assertNotRaw();
+        if (!array_all($this->valueArray, fn(Tag $value): bool => $value->getType() === $contentType)) {
+            throw new InvalidTagValueException("Cannot change content type of " . $this->describe() . " to " . $contentType->getName() .
+                " because it contains entries of type " . $this->contentType->getName());
+        }
+        $this->contentType = $contentType;
+        return $this;
     }
 
     /**
-     * @inheritDoc
+     * @throws RawTagModificationException
      */
-    public function offsetSet($offset, $value): void
+    protected function assertNotRaw(): void
     {
         if ($this->isRaw()) {
-            throw new Exception("Raw list tags cannot be modified");
+            throw new RawTagModificationException("Raw " . $this->describe() . " cannot be modified");
+        }
+    }
+
+    protected function describe(): string
+    {
+        return $this->getType()->getName() . " '" . ($this->getStringPath() ?? $this->name) . "'";
+    }
+
+    #[Override]
+    protected function writeContent(Writer $writer): void
+    {
+        $serializer = $writer->getSerializer();
+        $serializer->writeByte($this->contentType->value);
+        if ($this->rawContent !== null && $this->rawContentLength !== null) {
+            if ($this->rawContentFormat !== $writer->getFormat()) {
+                throw new RawTagModificationException("Cannot change format of raw " . $this->describe());
+            }
+            $serializer->writeLengthPrefix($this->rawContentLength);
+            $writer->write($this->rawContent);
+            return;
         }
 
-        /** @var Tag|null $previousValue */
-        $previousValue = null;
-        // $offset is null when appending ($list[] = $tag), and null array keys are deprecated since PHP 8.5
-        if ($offset !== null) {
-            $previousValue = $this->valueArray[$offset] ?? null;
+        $serializer->writeLengthPrefix($this->count());
+        foreach ($this->valueArray as $value) {
+            $value->writeGuardedContent($writer);
         }
+    }
+
+    #[Override]
+    protected function readContent(Reader $reader): void
+    {
+        $deserializer = $reader->getDeserializer();
+        $this->contentType = $this->readContentType($reader);
+        $length = $deserializer->readLengthPrefix()->value;
+
+        $maxLength = $this->options->getMaxListTagLength();
+        if ($maxLength !== null && $length > $maxLength) {
+            $this->rawContentFormat = $reader->getFormat();
+            $this->rawContentLength = $length;
+            $this->rawContent = static::readEntriesRaw($reader, $this->options, $this->contentType, $length);
+            return;
+        }
+
+        $values = [];
+        for ($i = 0; $i < $length; $i++) {
+            $values[] = $this->contentType->createTag($this->options)
+                ->setParentTag($this)
+                ->read($reader, false);
+        }
+        $this->valueArray = $values;
+    }
+
+    #[Override]
+    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    {
+        $deserializer = $reader->getDeserializer();
+        $contentType = $deserializer->readByte();
+        $length = $deserializer->readLengthPrefix();
+        $tagType = TagType::tryFrom($contentType->value)
+            ?? throw new UnknownTagTypeException("Unknown TAG_List content type " . $contentType->value);
+
+        return $contentType->rawData . $length->rawData .
+            static::readEntriesRaw($reader, $options, $tagType, $length->value);
+    }
+
+    /**
+     * @throws UnknownTagTypeException
+     */
+    protected function readContentType(Reader $reader): TagType
+    {
+        $type = $reader->getDeserializer()->readByte()->value;
+        return TagType::tryFrom($type)
+            ?? throw new UnknownTagTypeException("Unknown content type " . $type . " in " . $this->describe());
+    }
+
+    /**
+     * @throws NbtException
+     */
+    protected static function readEntriesRaw(Reader $reader, TagOptions $options, TagType $contentType, int $length): string
+    {
+        $tagClass = $contentType->getTagClass();
+        $data = "";
+        for ($i = 0; $i < $length; $i++) {
+            $data .= $tagClass::readRaw($reader, $options, false);
+        }
+        return $data;
+    }
+
+    /**
+     * Accepts tags of the content type, or any tag except TAG_End if the list is empty and has no content type yet
+     */
+    #[Override]
+    protected function isValidValue(mixed $value): bool
+    {
+        if (!$value instanceof Tag) {
+            return false;
+        }
+        if ($this->contentType === TagType::End && $this->count() === 0) {
+            return !$value instanceof EndTag;
+        }
+        return $value->getType() === $this->contentType;
+    }
+
+    /**
+     * @param Tag $value
+     * @throws NbtException
+     */
+    #[Override]
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->assertNotRaw();
+        $previousValue = is_int($offset) ? $this->valueArray[$offset] ?? null : null;
         parent::offsetSet($offset, $value);
-        $value->setParentTag($this);
+        if ($this->contentType === TagType::End) {
+            $this->contentType = $value->getType();
+        }
         $previousValue?->setParentTag(null);
+        $value->setParentTag($this);
     }
 
     /**
-     * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
-    public function offsetUnset($offset): void
+    #[Override]
+    public function offsetUnset(mixed $offset): void
     {
-        if ($this->isRaw()) {
-            throw new Exception("Raw list tags cannot be modified");
-        }
-
-        /** @var Tag|null $previousValue */
-        $previousValue = $this->valueArray[$offset] ?? null;
-        $previousValue?->setParentTag(null);
+        $this->assertNotRaw();
+        $this->offsetGet($offset)?->setParentTag(null);
         parent::offsetUnset($offset);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
+    protected function getEntryStrings(): array
+    {
+        return array_map(fn(Tag $value): string => $value->__toString(), $this->valueArray);
+    }
+
+    #[Override]
+    protected function getTagTypeString(): string
+    {
+        return parent::getTagTypeString() . "<" . $this->contentType->getName() . ">";
+    }
+
+    #[Override]
     public function equals(Tag $tag): bool
     {
         if ($tag === $this) {
             return true;
         }
-        if (!$tag instanceof ListTag || $this->getType() !== $tag->getType() ||
-            $this->getContentTag() !== $tag->getContentTag() || count($tag) !== count($this)) {
+        if (!$tag instanceof ListTag || $this->contentType !== $tag->contentType || count($tag) !== count($this)) {
             return false;
         }
-        /**
-         * @var int $i
-         * @var Tag $val
-         */
-        foreach ($this as $i => $val) {
-            if (!$val->equals($tag[$i])) {
+        foreach ($this->valueArray as $i => $value) {
+            if (!$value->equals($tag->valueArray[$i])) {
                 return false;
             }
         }
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
-        if ($this->isRaw()) {
+        if ($this->rawContent !== null) {
             return strlen($this->rawContent) . " bytes";
         }
         return parent::getValueString();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
-        $values = [];
-        foreach ($this->valueArray as $value) {
-            $values[] = $value->toSNBT();
-        }
+        $values = array_map(fn(Tag $value): string => $value->toSNBT(), $this->valueArray);
         return "[" . implode(", ", $values) . "]";
     }
 }

@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tests;
 
 use Aternos\Nbt\String\JavaEncoding;
-use Aternos\Nbt\String\StringDataFormatException;
+use Aternos\Nbt\Exception\StringDataFormatException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class JavaEncodingTest extends TestCase
 {
+    /**
+     * @return iterable<string, array{string, string}>
+     */
     public static function encodingProvider(): iterable
     {
         yield "ascii" => ["abc", "abc"];
@@ -23,7 +28,7 @@ class JavaEncodingTest extends TestCase
     #[DataProvider("encodingProvider")]
     public function testEncode(string $utf8, string $javaEncoded): void
     {
-        $this->assertSame($javaEncoded, JavaEncoding::getInstance()->encode($utf8));
+        $this->assertSame($javaEncoded, JavaEncoding::encode($utf8));
     }
 
     /**
@@ -32,7 +37,7 @@ class JavaEncodingTest extends TestCase
     #[DataProvider("encodingProvider")]
     public function testDecode(string $utf8, string $javaEncoded): void
     {
-        $this->assertSame($utf8, JavaEncoding::getInstance()->decode($javaEncoded));
+        $this->assertSame($utf8, JavaEncoding::decode($javaEncoded));
     }
 
     #[TestWith(["a\0b"], "raw NUL byte")]
@@ -43,6 +48,6 @@ class JavaEncodingTest extends TestCase
     public function testDecodeRejectsInvalidData(string $data): void
     {
         $this->expectException(StringDataFormatException::class);
-        JavaEncoding::getInstance()->decode($data);
+        JavaEncoding::decode($data);
     }
 }

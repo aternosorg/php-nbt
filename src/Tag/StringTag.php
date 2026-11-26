@@ -1,45 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
-use Exception;
+use Override;
 
 class StringTag extends Tag
 {
-    public const TYPE = TagType::TAG_String;
+    public const TagType TYPE = TagType::String;
 
     protected string $value = "";
 
     /**
-     * @param string $source
-     * @return string
+     * Quote a string for SNBT, preferring double quotes
      */
     public static function encodeSNBTString(string $source): string
     {
-        $quoteChar = '"';
-        if (str_contains($source, '"') && !str_contains($source, "'")) {
-            $quoteChar = "'";
-        }
+        $quoteChar = str_contains($source, '"') && !str_contains($source, "'") ? "'" : '"';
+        $escaped = str_replace(["\\", $quoteChar], ["\\\\", "\\" . $quoteChar], $source);
+        return $quoteChar . $escaped . $quoteChar;
+    }
 
-        $result = "";
-        for ($i = 0; $i < strlen($source); $i++) {
-            $char = $source[$i];
-            if ($char === "\\") {
-                $result .= "\\\\";
-            } else if ($char === $quoteChar) {
-                $result .= "\\" . $quoteChar;
-            } else {
-                $result .= $char;
-            }
-        }
-
-        return $quoteChar . $result . $quoteChar;
+    #[Override]
+    public function getType(): TagType
+    {
+        return self::TYPE;
     }
 
     /**
-     * @return string
+     * The UTF-8 encoded value
      */
     public function getValue(): string
     {
@@ -47,8 +39,7 @@ class StringTag extends Tag
     }
 
     /**
-     * @param string $value
-     * @return $this
+     * @param string $value UTF-8 encoded, converted to the encoding of the NBT format when written
      */
     public function setValue(string $value): static
     {
@@ -57,73 +48,50 @@ class StringTag extends Tag
     }
 
     /**
-     * @return int
+     * Length of the UTF-8 encoded value in bytes
      */
     public function getLength(): int
     {
         return strlen($this->value);
     }
 
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    public function writeContent(Writer $writer): static
+    #[Override]
+    protected function writeContent(Writer $writer): void
     {
-        $length = strlen($this->value);
-        if ($length > 0xffff) {
-            throw new Exception("String exceeds maximum length of " . 0xffff . " characters");
-        }
         $writer->getSerializer()->writeString($this->value);
-        return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    protected function readContent(Reader $reader): void
     {
-        $this->value = $reader->getDeserializer()->readString()->getValue();
-        return $this;
+        $this->value = $reader->getDeserializer()->readString()->value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
-        $length = $reader->getDeserializer()->readStringLengthPrefix();
-        return $length->getRawData() . $reader->read($length->getValue());
+        return $reader->getDeserializer()->readRawString();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         return "'" . str_replace("\n", "\\n", $this->value) . "'";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function jsonSerialize(): string
     {
         return $this->value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function equals(Tag $tag): bool
     {
-        return $tag instanceof StringTag && $this->getType() === $tag->getType() &&
-            $tag->getValue() === $this->getValue();
+        return $tag instanceof StringTag && $tag->value === $this->value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return static::encodeSNBTString($this->value);

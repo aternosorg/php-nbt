@@ -1,20 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tests;
 
+use Aternos\Nbt\Exception\CircularStructureException;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\IO\Writer\StringWriter;
+use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\ByteArrayTag;
+use Aternos\Nbt\Tag\ByteTag;
 use Aternos\Nbt\Tag\CompoundTag;
+use Aternos\Nbt\Tag\IntArrayTag;
 use Aternos\Nbt\Tag\IntTag;
 use Aternos\Nbt\Tag\ListTag;
+use Aternos\Nbt\Tag\ShortTag;
 use Aternos\Nbt\Tag\StringTag;
 use Aternos\Nbt\Tag\TagType;
-use Exception;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class TagManipulationTest extends TestCase
 {
     /**
-     * @throws Exception
+     * @throws NbtException
      */
     public function testCompoundSetGetAndDelete(): void
     {
@@ -30,7 +40,7 @@ class TagManipulationTest extends TestCase
         $this->assertTrue(isset($compound["a"]));
         $this->assertNull($compound["missing"]);
         $this->assertNull($compound->getString("a"), "typed getter returns null for a different tag type");
-        $this->assertSame("b", $compound->getString("b")->getValue());
+        $this->assertSame("b", $compound->getString("b")?->getValue());
 
         $compound->delete("a");
         $this->assertCount(1, $compound);
@@ -39,7 +49,7 @@ class TagManipulationTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws NbtException
      */
     public function testCompoundReplacesExistingKey(): void
     {
@@ -49,131 +59,180 @@ class TagManipulationTest extends TestCase
         $compound["a"] = new IntTag()->setValue(3);
 
         $this->assertCount(2, $compound);
-        $this->assertSame(3, $compound->getInt("a")->getValue());
+        $this->assertSame(3, $compound->getInt("a")?->getValue());
     }
 
     /**
-     * @throws Exception
+     * @throws NbtException
      */
     public function testCompoundAppendUsesTagName(): void
     {
         $compound = new CompoundTag();
         $compound[] = new IntTag()->setName("named")->setValue(1);
-        $this->assertSame(1, $compound->getInt("named")->getValue());
+        $this->assertSame(1, $compound->getInt("named")?->getValue());
     }
 
     public function testCompoundRejectsUnnamedAppend(): void
     {
-        $this->expectException(Exception::class);
         $compound = new CompoundTag();
+        $this->expectException(InvalidTagValueException::class);
         $compound[] = new IntTag();
     }
 
     public function testCompoundRejectsNonTagValues(): void
     {
-        $this->expectException(Exception::class);
         $compound = new CompoundTag();
+        $this->expectException(InvalidTagValueException::class);
+        // @phpstan-ignore offsetAssign.valueType (testing the runtime check)
         $compound["a"] = 1;
     }
 
+    /**
+     * @throws NbtException
+     */
     public function testCompoundIteratesInInsertionOrderWithNamesAsKeys(): void
     {
         $compound = new CompoundTag()
             ->set("b", new IntTag()->setValue(1))
-            ->set("a", new IntTag()->setValue(2));
+            ->set("a", new IntTag()->setValue(2))
+            ->set("1", new IntTag()->setValue(3));
 
         $values = [];
         foreach ($compound as $name => $tag) {
-            $values[$name] = $tag->getValue();
+            $this->assertIsString($name);
+            $this->assertInstanceOf(IntTag::class, $tag);
+            $values[] = [$name, $tag->getValue()];
         }
-        $this->assertSame(["b" => 1, "a" => 2], $values);
+        $this->assertSame([["b", 1], ["a", 2], ["1", 3]], $values);
     }
 
     /**
-     * @throws Exception
+     * @throws NbtException
      */
     public function testListInfersContentTypeFromFirstValue(): void
     {
         $list = new ListTag();
-        $this->assertSame(TagType::TAG_End, $list->getContentTag());
+        $this->assertSame(TagType::End, $list->getContentType());
 
         $list[] = new IntTag()->setValue(1);
-        $this->assertSame(TagType::TAG_Int, $list->getContentTag());
-        $this->assertSame($list, $list[0]->getParentTag());
+        $this->assertSame(TagType::Int, $list->getContentType());
+        $this->assertSame($list, $list[0]?->getParentTag());
     }
 
     public function testListRejectsDifferentContentType(): void
     {
         $list = TagFixtures::intList(1);
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidTagValueException::class);
         $list[] = new StringTag();
     }
 
     public function testListContentTypeCannotChangeWhileFilled(): void
     {
         $list = TagFixtures::intList(1);
-        $this->expectException(Exception::class);
-        $list->setContentTag(TagType::TAG_String);
+        $this->expectException(InvalidTagValueException::class);
+        $list->setContentType(TagType::String);
     }
 
-    public function testListReplaceAndUnsetUpdateParents(): void
+    /**
+     * @throws NbtException
+     */
+    public function testListReplaceAndUnsetUpdateParentsAndKeepIndicesContinuous(): void
     {
         $list = TagFixtures::intList(1, 2);
         $old = $list[0];
         $new = new IntTag()->setValue(3);
         $list[0] = $new;
 
-        $this->assertNull($old->getParentTag());
+        $this->assertNull($old?->getParentTag());
         $this->assertSame($list, $new->getParentTag());
 
         unset($list[0]);
         $this->assertNull($new->getParentTag());
         $this->assertCount(1, $list);
+        $this->assertSame(2, $list[0]?->jsonSerialize(), "entries after an unset entry move down");
+    }
+
+    public function testListRejectsOffsetsThatWouldLeaveGaps(): void
+    {
+        $list = TagFixtures::intList(1);
+        $this->expectException(InvalidTagValueException::class);
+        $list[5] = new IntTag();
     }
 
     public function testListIteration(): void
     {
         $values = [];
         foreach (TagFixtures::intList(1, 2, 3) as $tag) {
-            $values[] = $tag->getValue();
+            $values[] = $tag->jsonSerialize();
         }
         $this->assertSame([1, 2, 3], $values);
     }
 
+    /**
+     * @throws NbtException
+     */
     public function testByteArrayIterationIncludesZero(): void
     {
-        $array = new ByteArrayTag();
-        $array[] = 0;
-        $array[] = 1;
+        $array = new ByteArrayTag()->setValues([0, 1]);
 
         $values = [];
         foreach ($array as $value) {
             $values[] = $value;
         }
         $this->assertSame([0, 1], $values);
+        $this->assertSame([0, 1], $array->getValues());
     }
 
     public function testArrayRejectsInvalidValue(): void
     {
         $array = new ByteArrayTag();
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidTagValueException::class);
+        // @phpstan-ignore offsetAssign.valueType (testing the runtime check)
         $array[] = "a";
     }
 
+    public function testByteArrayRejectsValuesOutOfRange(): void
+    {
+        $array = new ByteArrayTag();
+        $this->expectException(InvalidTagValueException::class);
+        $array[] = 128;
+    }
+
+    public function testIntArraySetValuesRejectsValuesOutOfRange(): void
+    {
+        $this->expectException(InvalidTagValueException::class);
+        new IntArrayTag()->setValues([0, 0x80000000]);
+    }
+
     /**
-     * @throws Exception
+     * @param class-string<ByteTag|ShortTag|IntTag> $class
+     */
+    #[TestWith([ByteTag::class, 128], "byte too large")]
+    #[TestWith([ByteTag::class, -129], "byte too small")]
+    #[TestWith([ShortTag::class, 0x8000], "short too large")]
+    #[TestWith([IntTag::class, -0x80000001], "int too small")]
+    public function testIntValueTagsRejectValuesOutOfRange(string $class, int $value): void
+    {
+        $this->expectException(InvalidTagValueException::class);
+        new $class()->setValue($value);
+    }
+
+    /**
+     * @throws NbtException
      */
     public function testEqualsComparesTypeAndValue(): void
     {
         $this->assertTrue(new IntTag()->setValue(1)->equals(new IntTag()->setValue(1)));
         $this->assertFalse(new IntTag()->setValue(1)->equals(new IntTag()->setValue(2)));
+        $this->assertFalse(new IntTag()->setValue(1)->equals(new ShortTag()->setValue(1)));
         $this->assertFalse(new IntTag()->setValue(1)->equals(new StringTag()->setValue("1")));
         $this->assertFalse(TagFixtures::intList(1)->equals(TagFixtures::intList(1, 2)));
+        $this->assertFalse(new ByteArrayTag()->setValues([1])->equals(new IntArrayTag()->setValues([1])));
         $this->assertTrue(TagFixtures::everyTagType()->equals(TagFixtures::everyTagType()));
     }
 
     /**
-     * @throws Exception
+     * @throws NbtException
      */
     public function testPath(): void
     {
@@ -186,6 +245,83 @@ class TagManipulationTest extends TestCase
         $this->assertSame("", $root->getStringPath());
     }
 
+    /**
+     * @throws NbtException
+     */
+    public function testCircularParentsHaveNoPath(): void
+    {
+        $a = new CompoundTag()->setName("a");
+        $b = new CompoundTag()->setName("b");
+        $a->setParentTag($b);
+        $b->setParentTag($a);
+
+        $this->assertNull($a->getStringPath());
+        $this->expectException(CircularStructureException::class);
+        $a->getPath();
+    }
+
+    /**
+     * @throws NbtException
+     */
+    public function testCircularStructureCannotBeWritten(): void
+    {
+        $root = new CompoundTag();
+        $child = new CompoundTag();
+        $root->set("child", $child);
+        $child->set("root", $root);
+
+        $this->expectException(CircularStructureException::class);
+        $root->write(new StringWriter());
+    }
+
+    /**
+     * @throws NbtException
+     */
+    public function testListContainingItselfCannotBeWritten(): void
+    {
+        $list = new ListTag()->setContentType(TagType::List);
+        $list[] = $list;
+        $root = new CompoundTag()->set("list", $list);
+
+        $this->expectException(CircularStructureException::class);
+        $root->write(new StringWriter());
+    }
+
+    /**
+     * @throws NbtException
+     */
+    public function testFailedWriteDoesNotBreakLaterWrites(): void
+    {
+        $root = new CompoundTag()->set("emptyList", new ListTag());
+        $root->set("string", new StringTag()->setValue(str_repeat("a", 0x10000)));
+        try {
+            $root->write(new StringWriter());
+            $this->fail("Writing a too long string must fail");
+        } catch (InvalidTagValueException) {
+        }
+
+        $root->delete("string");
+        $writer = new StringWriter();
+        $root->write($writer);
+        $this->assertNotSame("", $writer->getStringData());
+    }
+
+    public function testJavaStringLengthIsCheckedAfterEncoding(): void
+    {
+        // 0x8000 NUL characters take two bytes each in Java's modified UTF-8
+        $root = new CompoundTag()->set("nul", new StringTag()->setValue(str_repeat("\0", 0x8000)));
+
+        $writer = new StringWriter()->setFormat(NbtFormat::BedrockEdition);
+        $root->write($writer);
+        $this->assertNotSame("", $writer->getStringData());
+
+        $this->expectException(InvalidTagValueException::class);
+        $root->write(new StringWriter()->setFormat(NbtFormat::JavaEdition));
+    }
+
+    /**
+     * @throws NbtException
+     */
     public function testJsonSerialize(): void
     {
         $compound = new CompoundTag()

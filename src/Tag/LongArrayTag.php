@@ -1,103 +1,46 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\Deserializer\DeserializerIntReadResult;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\Serializer\NbtSerializer;
+use Override;
 
-class LongArrayTag extends ArrayValueTag
+class LongArrayTag extends NumberArrayTag
 {
-    use RawValueTag;
+    public const TagType TYPE = TagType::LongArray;
 
-    public const TYPE = TagType::TAG_Long_Array;
-
-    /**
-     * @inheritDoc
-     */
-    protected function writeValues(Writer $writer): string
+    #[Override]
+    public function getType(): TagType
     {
-        if ($this->rawValueValid($writer->getFormat())) {
-            $writer->write($this->rawValue);
-            return $this;
-        }
-        foreach ($this->valueArray as $value) {
-            $writer->getSerializer()->writeLong($value);
-        }
-        return $this;
+        return self::TYPE;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readValues(Reader $reader, int $length): array
+    #[Override]
+    protected static function getEntryTagClass(): string
     {
-        $raw = "";
-        $values = [];
-        for ($i = 0; $i < $length; $i++) {
-            $res = $reader->getDeserializer()->readLong();
-            $values[] = $res->getValue();
-            $raw .= $res->getRawData();
-        }
-        $this->rawValue = $raw;
-        $this->rawValueType = $reader->getFormat();
-        return $values;
+        return LongTag::class;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected static function readValuesRaw(Reader $reader, int $length): string
+    #[Override]
+    protected static function readNumber(NbtDeserializer $deserializer): DeserializerIntReadResult
     {
-        $raw = "";
-        for ($i = 0; $i < $length; $i++) {
-            $raw .= $reader->getDeserializer()->readLong()->getRawData();
-        }
-        return $raw;
+        return $deserializer->readLong();
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function checkArrayValue($value): bool
+    #[Override]
+    protected static function writeNumber(NbtSerializer $serializer, int $value): void
     {
-        return is_int($value);
+        $serializer->writeLong($value);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function offsetSet($offset, $value): void
-    {
-        $this->resetRawValue();
-        parent::offsetSet($offset, $value);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetUnset($offset): void
-    {
-        $this->resetRawValue();
-        parent::offsetUnset($offset);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function checkArrayKey($offset): bool
-    {
-        return is_int($offset);
-    }
-
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
-        $values = [];
-        foreach ($this->valueArray as $val) {
-            $values[] = $val . "L";
-        }
+        $values = array_map(fn(int $value): string => $value . "L", $this->valueArray);
         return "[L;" . implode(", ", $values) . "]";
     }
 }

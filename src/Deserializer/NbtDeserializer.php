@@ -1,74 +1,80 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Deserializer;
 
+use Aternos\Nbt\Exception\StringDataFormatException;
 use Aternos\Nbt\IO\Reader\Reader;
+use Aternos\Nbt\NbtFormat;
 
 abstract class NbtDeserializer
 {
-    public function __construct(protected Reader $reader)
+    public function __construct(public readonly Reader $reader)
     {
     }
 
+    abstract public function getFormat(): NbtFormat;
+
     /**
      * Read an NBT length prefix (TAG_List, TAG_Byte_Array, TAG_Int_Array, and TAG_Long_Array)
-     *
-     * @return DeserializerIntReadResult
      */
     abstract public function readLengthPrefix(): DeserializerIntReadResult;
 
     /**
      * Read an NBT string length prefix
-     *
-     * @return DeserializerIntReadResult
      */
     abstract public function readStringLengthPrefix(): DeserializerIntReadResult;
 
-    /**
-     * @return DeserializerIntReadResult
-     */
     abstract public function readByte(): DeserializerIntReadResult;
 
-    /**
-     * @return DeserializerIntReadResult
-     */
     abstract public function readShort(): DeserializerIntReadResult;
 
-    /**
-     * @return DeserializerIntReadResult
-     */
     abstract public function readInt(): DeserializerIntReadResult;
 
-    /**
-     * @return DeserializerIntReadResult
-     */
     abstract public function readLong(): DeserializerIntReadResult;
 
-    /**
-     * @return DeserializerFloatReadResult
-     */
     abstract public function readFloat(): DeserializerFloatReadResult;
 
-    /**
-     * @return DeserializerFloatReadResult
-     */
     abstract public function readDouble(): DeserializerFloatReadResult;
 
     /**
-     * @return DeserializerStringReadResult
+     * Convert string data from the format's encoding to UTF-8
+     *
+     * @throws StringDataFormatException
      */
-    abstract public function readString(): DeserializerStringReadResult;
+    abstract protected function decodeString(string $data): string;
 
     /**
-     * @return int
+     * @throws StringDataFormatException
      */
-    abstract public function getFormat(): int;
-
-    /**
-     * @return Reader
-     */
-    public function getReader(): Reader
+    public function readString(): DeserializerStringReadResult
     {
-        return $this->reader;
+        $length = $this->readStringLengthPrefix();
+        $data = $this->readStringData($length->value);
+        return new DeserializerStringReadResult($this->decodeString($data), $length->rawData . $data);
+    }
+
+    /**
+     * Read the raw bytes of a string, including the length prefix, without decoding them
+     *
+     * @throws StringDataFormatException
+     */
+    public function readRawString(): string
+    {
+        $length = $this->readStringLengthPrefix();
+        return $length->rawData . $this->readStringData($length->value);
+    }
+
+    /**
+     * @throws StringDataFormatException
+     */
+    protected function readStringData(int $length): string
+    {
+        $data = $this->reader->read($length);
+        if (strlen($data) !== $length) {
+            throw new StringDataFormatException("Failed to read string: expected length " . $length . ", got " . strlen($data));
+        }
+        return $data;
     }
 }

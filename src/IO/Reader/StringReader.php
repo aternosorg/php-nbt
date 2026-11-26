@@ -1,60 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\IO\Reader;
+
+use Aternos\Nbt\NbtFormat;
+use Override;
 
 class StringReader extends AbstractReader
 {
-    protected string $data;
-    protected int $ptr = 0;
-    protected int $length;
+    protected int $pointer = 0;
+    protected readonly int $length;
 
-    public function __construct(string $data, int $format)
+    public function __construct(protected readonly string $data, NbtFormat $format)
     {
         $this->format = $format;
-        $this->data = $data;
         $this->length = strlen($data);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function read(int $length): string
     {
-        $length = min($length, $this->length - $this->ptr);
-        $oldPtr = $this->ptr;
-        $this->ptr += $length;
-        return substr($this->data, $oldPtr, $length);
+        $length = min($length, $this->length - $this->pointer);
+        $start = $this->pointer;
+        $this->pointer += $length;
+        return substr($this->data, $start, $length);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function eof(): bool
     {
-        return $this->ptr >= $this->length;
+        return $this->pointer >= $this->length;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function tell(): int
     {
-        return $this->ptr;
+        return $this->pointer;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
-    {
-        return $this->format;
-    }
-
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function returnData(string $data): void
     {
-        $this->ptr -= strlen($data);
+        $this->pointer -= strlen($data);
     }
 }

@@ -1,18 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Deserializer;
 
-abstract class DeserializerReadResult
+abstract readonly class DeserializerReadResult
 {
-    public function __construct(protected string $rawData)
-    {
-    }
-
     /**
-     * @return string
+     * @param string $rawData the bytes the value was read from
      */
-    public function getRawData(): string
+    public function __construct(public string $rawData)
     {
-        return $this->rawData;
     }
 }

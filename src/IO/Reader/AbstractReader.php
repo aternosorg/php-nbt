@@ -1,39 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\IO\Reader;
 
-use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\NbtFormat;
+use Override;
 
 abstract class AbstractReader implements Reader
 {
-    protected int $format = NbtFormat::JAVA_EDITION;
+    protected NbtFormat $format = NbtFormat::JavaEdition;
     protected ?NbtDeserializer $deserializer = null;
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getDeserializer(): NbtDeserializer
     {
-        if (is_null($this->deserializer)) {
-            $this->deserializer = NbtFormat::getDeserializer($this->getFormat(), $this);
-        }
-        return $this->deserializer;
+        return $this->deserializer ??= $this->getFormat()->createDeserializer($this);
     }
 
-    /**
-     * @return int
-     */
-    public function getFormat(): int
+    #[Override]
+    public function getFormat(): NbtFormat
     {
         return $this->format;
     }
 
-    /**
-     * @param int $format
-     * @return $this
-     */
-    public function setFormat(int $format): static
+    public function setFormat(NbtFormat $format): static
     {
         $this->format = $format;
         $this->deserializer = null;

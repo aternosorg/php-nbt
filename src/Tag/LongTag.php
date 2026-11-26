@@ -1,62 +1,37 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
-
-use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\Deserializer\DeserializerIntReadResult;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\Serializer\NbtSerializer;
+use Override;
 
 class LongTag extends IntValueTag
 {
-    use RawValueTag;
+    public const TagType TYPE = TagType::Long;
 
-    public const TYPE = TagType::TAG_Long;
-
-    /**
-     * @inheritDoc
-     */
-    public function writeContent(Writer $writer): static
+    #[Override]
+    public function getType(): TagType
     {
-        if ($this->rawValueValid($writer->getFormat())) {
-            $writer->write($this->rawValue);
-            return $this;
-        }
-        $writer->getSerializer()->writeLong($this->value);
-        return $this;
+        return self::TYPE;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    protected static function readNumber(NbtDeserializer $deserializer): DeserializerIntReadResult
     {
-        $result = $reader->getDeserializer()->readLong();
-        $this->setRawDataFromSerializer($result, $reader->getFormat());
-        $this->value = $result->getValue();
-        return $this;
+        return $deserializer->readLong();
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    #[Override]
+    protected static function writeNumber(NbtSerializer $serializer, int $value): void
     {
-        return $reader->getDeserializer()->readLong()->getRawData();
+        $serializer->writeLong($value);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function setValue(int $value): static
-    {
-        $this->resetRawValue();
-        return parent::setValue($value);
-    }
-
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return $this->value . "L";

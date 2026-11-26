@@ -1,43 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\Deserializer\DeserializerIntReadResult;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\Serializer\NbtSerializer;
+use Override;
 
 class ByteTag extends IntValueTag
 {
-    public const TYPE = TagType::TAG_Byte;
+    public const TagType TYPE = TagType::Byte;
+    public const int MIN_VALUE = -0x80;
+    public const int MAX_VALUE = 0x7f;
 
-    /**
-     * @inheritDoc
-     */
-    public function writeContent(Writer $writer): static
+    #[Override]
+    public function getType(): TagType
     {
-        $writer->getSerializer()->writeByte($this->value);
-        return $this;
+        return self::TYPE;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    protected static function readNumber(NbtDeserializer $deserializer): DeserializerIntReadResult
     {
-        $this->value = $reader->getDeserializer()->readByte()->getValue();
-        return $this;
+        return $deserializer->readByte();
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
+    #[Override]
+    protected static function writeNumber(NbtSerializer $serializer, int $value): void
     {
-        return $reader->getDeserializer()->readByte()->getRawData();
+        $serializer->writeByte($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return $this->value . "b";

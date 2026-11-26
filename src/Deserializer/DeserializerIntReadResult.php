@@ -1,19 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Deserializer;
 
-class DeserializerIntReadResult extends DeserializerReadResult
+final readonly class DeserializerIntReadResult extends DeserializerReadResult
 {
-    public function __construct(protected int $value, string $rawData)
+    public function __construct(public int $value, string $rawData)
     {
         parent::__construct($rawData);
-    }
-
-    /**
-     * @return int
-     */
-    public function getValue(): int
-    {
-        return $this->value;
     }
 }

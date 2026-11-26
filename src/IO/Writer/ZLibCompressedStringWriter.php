@@ -1,18 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\IO\Writer;
 
-use Exception;
+use Aternos\Nbt\Exception\CompressionException;
+use Override;
 
 class ZLibCompressedStringWriter extends StringWriter
 {
     /**
-     * @throws Exception
+     * @throws CompressionException
      */
+    #[Override]
     public function getStringData(): string
     {
-        if (($compressed = @zlib_encode(parent::getStringData(), ZLIB_ENCODING_DEFLATE)) === false) {
-            throw new Exception("Failed to apply ZLib compression");
+        $compressed = @zlib_encode(parent::getStringData(), ZLIB_ENCODING_DEFLATE);
+        if ($compressed === false) {
+            throw new CompressionException("Failed to apply ZLib compression");
         }
         return $compressed;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt;
 
 use Aternos\Nbt\Deserializer\BedrockEditionNbtDeserializer;
@@ -13,41 +15,49 @@ use Aternos\Nbt\Serializer\BedrockEditionNetworkNbtSerializer;
 use Aternos\Nbt\Serializer\JavaEditionNbtSerializer;
 use Aternos\Nbt\Serializer\NbtSerializer;
 
-class NbtFormat
+/**
+ * The three flavors of the NBT format
+ */
+enum NbtFormat
 {
-    const JAVA_EDITION = 0;
-    const BEDROCK_EDITION = 1;
-    const BEDROCK_EDITION_NETWORK = 2;
+    /**
+     * Big endian, strings in Java's modified UTF-8
+     */
+    case JavaEdition;
 
     /**
-     * Find the appropriate deserializer for an NBT format
-     *
-     * @param int $type
-     * @param Reader $reader
-     * @return NbtDeserializer
+     * Little endian, strings in UTF-8
      */
-    public static function getDeserializer(int $type, Reader $reader): NbtDeserializer
+    case BedrockEdition;
+
+    /**
+     * Little endian with VarInt encoded ints, longs and length prefixes, strings in UTF-8
+     */
+    case BedrockEditionNetwork;
+
+    public function createDeserializer(Reader $reader): NbtDeserializer
     {
-        return match ($type) {
-            static::BEDROCK_EDITION => new BedrockEditionNbtDeserializer($reader),
-            static::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtDeserializer($reader),
-            default => new JavaEditionNbtDeserializer($reader),
+        return match ($this) {
+            self::JavaEdition => new JavaEditionNbtDeserializer($reader),
+            self::BedrockEdition => new BedrockEditionNbtDeserializer($reader),
+            self::BedrockEditionNetwork => new BedrockEditionNetworkNbtDeserializer($reader),
+        };
+    }
+
+    public function createSerializer(Writer $writer): NbtSerializer
+    {
+        return match ($this) {
+            self::JavaEdition => new JavaEditionNbtSerializer($writer),
+            self::BedrockEdition => new BedrockEditionNbtSerializer($writer),
+            self::BedrockEditionNetwork => new BedrockEditionNetworkNbtSerializer($writer),
         };
     }
 
     /**
-     * Find the appropriate serializer for an NBT format
-     *
-     * @param int $type
-     * @param Writer $writer
-     * @return NbtSerializer
+     * Whether a ListTag may be the root tag of an NBT file in this format
      */
-    public static function getSerializer(int $type, Writer $writer): NbtSerializer
+    public function allowsListAsRoot(): bool
     {
-        return match ($type) {
-            static::BEDROCK_EDITION => new BedrockEditionNbtSerializer($writer),
-            static::BEDROCK_EDITION_NETWORK => new BedrockEditionNetworkNbtSerializer($writer),
-            default => new JavaEditionNbtSerializer($writer),
-        };
+        return $this !== self::JavaEdition;
     }
 }

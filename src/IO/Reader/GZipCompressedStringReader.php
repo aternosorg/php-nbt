@@ -1,19 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\IO\Reader;
 
-use Exception;
+use Aternos\Nbt\Exception\CompressionException;
+use Aternos\Nbt\NbtFormat;
 
 class GZipCompressedStringReader extends StringReader
 {
     /**
-     * @throws Exception
+     * @param int $maxDecompressedSize maximum size of the decompressed data in bytes, 0 for no limit
+     * @throws CompressionException
      */
-    public function __construct(string $data, int $format, int $maxDecompressedSize = 0)
+    public function __construct(string $data, NbtFormat $format, int $maxDecompressedSize = 0)
     {
-        if (($uncompressed = @gzdecode($data, $maxDecompressedSize)) === false) {
-            throw new Exception("Invalid GZip data");
+        $decompressed = @gzdecode($data, $maxDecompressedSize);
+        if ($decompressed === false) {
+            $reason = $maxDecompressedSize > 0 ? "invalid data or larger than " . $maxDecompressedSize . " bytes" : "invalid data";
+            throw new CompressionException("Failed to decompress GZip data: " . $reason);
         }
-        parent::__construct($uncompressed, $format);
+        parent::__construct($decompressed, $format);
     }
 }

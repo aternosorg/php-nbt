@@ -1,26 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
-class RawTagReadResult
+final readonly class RawTagReadResult
 {
-    public function __construct(protected string $data, protected int $tagType)
-    {
-    }
-
     /**
-     * @return string
+     * @param string $data the complete raw tag including type byte, name and payload
      */
-    public function getData(): string
+    public function __construct(public string $data, public TagType $tagType)
     {
-        return $this->data;
-    }
-
-    /**
-     * @return int
-     */
-    public function getTagType(): int
-    {
-        return $this->tagType;
     }
 }

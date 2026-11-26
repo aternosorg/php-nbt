@@ -1,333 +1,264 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Exception\CircularStructureException;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\Exception\UnknownTagTypeException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
-use Aternos\Nbt\NbtFormat;
-use BadMethodCallException;
-use Exception;
 use JsonSerializable;
+use Stringable;
 
-abstract class Tag implements JsonSerializable
+/**
+ * Reading and writing tags can also throw a \pocketmine\utils\BinaryDataException if the input data ends unexpectedly.
+ */
+abstract class Tag implements JsonSerializable, Stringable
 {
-    public const TYPE = -1;
-
-    /**
-     * @var class-string<Tag>[]
-     */
-    public const TAGS = [
-        TagType::TAG_End => EndTag::class,
-        TagType::TAG_Byte => ByteTag::class,
-        TagType::TAG_Short => ShortTag::class,
-        TagType::TAG_Int => IntTag::class,
-        TagType::TAG_Long => LongTag::class,
-        TagType::TAG_Float => FloatTag::class,
-        TagType::TAG_Double => DoubleTag::class,
-        TagType::TAG_Byte_Array => ByteArrayTag::class,
-        TagType::TAG_String => StringTag::class,
-        TagType::TAG_List => ListTag::class,
-        TagType::TAG_Compound => CompoundTag::class,
-        TagType::TAG_Int_Array => IntArrayTag::class,
-        TagType::TAG_Long_Array => LongArrayTag::class
-    ];
-
     protected ?string $name = null;
     protected bool $isBeingSerialized = false;
     protected ?Tag $parentTag = null;
     protected TagOptions $options;
 
-    /**
-     * @param TagOptions|null $options
-     */
     public function __construct(?TagOptions $options = null)
     {
-        $this->options = $options ?: new TagOptions();
+        $this->options = $options ?? new TagOptions();
     }
 
-    /**
-     * @param string|null $name
-     * @return $this
-     */
+    abstract public function getType(): TagType;
+
     public function setName(?string $name): static
     {
         $this->name = $name;
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getName(): ?string
     {
         return $this->name;
     }
 
-    /**
-     * @param Tag|null $parentTag
-     * @return $this
-     */
     public function setParentTag(?Tag $parentTag): static
     {
         $this->parentTag = $parentTag;
         return $this;
     }
 
-    /**
-     * @return Tag|null
-     */
     public function getParentTag(): ?Tag
     {
         return $this->parentTag;
     }
 
     /**
-     * @return array<?string>
-     * @throws Exception
+     * Names of all parent tags and this tag, starting at the root tag
+     *
+     * @return list<?string>
+     * @throws CircularStructureException
      */
     public function getPath(): array
     {
-        if ($this->isBeingSerialized) {
-            throw new Exception("Failed to resolve path: Circular NBT structure detected");
+        $names = [];
+        $visited = [];
+        for ($tag = $this; $tag !== null; $tag = $tag->parentTag) {
+            if (isset($visited[spl_object_id($tag)])) {
+                throw new CircularStructureException("Failed to resolve path: " . $this->getType()->getName() . " '" . $this->name . "' is its own parent");
+            }
+            $visited[spl_object_id($tag)] = true;
+            $names[] = $tag->name;
         }
-        $this->isBeingSerialized = true;
-        if($this->parentTag) {
-            $path = [...$this->parentTag->getPath(), $this->getName()];
-        }else {
-            $path = [$this->getName()];
-        }
-        $this->isBeingSerialized = false;
-        return $path;
+        return array_reverse($names);
     }
 
     /**
-     * @return string|null
+     * Path of this tag with names joined by "/", null if the structure is circular
      */
     public function getStringPath(): ?string
     {
         try {
             $path = $this->getPath();
-        }catch (Exception) {
+        } catch (CircularStructureException) {
             return null;
         }
         return implode("/", $path);
     }
 
-    /**
-     * @return bool
-     */
     public static function canBeNamed(): bool
     {
         return true;
     }
 
     /**
-     * @param Writer $writer
-     * @return $this
+     * Write the tag payload, without type byte and name
+     *
+     * @throws NbtException
      */
-    abstract public function writeContent(Writer $writer): static;
+    abstract protected function writeContent(Writer $writer): void;
 
     /**
-     * @param Reader $reader
-     * @return $this
+     * Read the tag payload, without type byte and name
+     *
+     * @throws NbtException
      */
-    abstract protected function readContent(Reader $reader): static;
+    abstract protected function readContent(Reader $reader): void;
 
     /**
-     * @param Reader $reader
-     * @param TagOptions $options
-     * @return string
+     * Read the tag payload without parsing it
+     *
+     * @throws NbtException
      */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
-    {
-        throw new BadMethodCallException("Not implemented");
-    }
-
-    /**
-     * @return int
-     */
-    public function getType(): int
-    {
-        return static::TYPE;
-    }
+    abstract protected static function readContentRaw(Reader $reader, TagOptions $options): string;
 
     /**
      * Read tag name and payload
      *
-     * @param Reader $reader
-     * @param bool $named
-     * @return $this
-     * @throws Exception
+     * @throws NbtException
      */
     public function read(Reader $reader, bool $named = true): static
     {
         if ($named && static::canBeNamed()) {
-            $name = $reader->getDeserializer()->readString();
-            $this->setName($name->getValue());
+            $this->setName($reader->getDeserializer()->readString()->value);
         }
-        return $this->readContent($reader);
+        $this->readContent($reader);
+        return $this;
     }
 
     /**
-     * @param Reader $reader
-     * @param TagOptions $options
-     * @param bool $named
-     * @return string
-     * @throws Exception
+     * Read tag name and payload without parsing them
+     *
+     * @throws NbtException
      */
     public static function readRaw(Reader $reader, TagOptions $options, bool $named = true): string
     {
         $result = "";
         if ($named && static::canBeNamed()) {
-            $name = $reader->getDeserializer()->readString();
-            $result .= $name->getRawData();
+            $result .= $reader->getDeserializer()->readRawString();
         }
-        $result .= static::readContentRaw($reader, $options);
-        return $result;
+        return $result . static::readContentRaw($reader, $options);
     }
 
     /**
-     * @param Writer $writer
-     * @param bool $named
-     * @return $this
-     * @throws Exception
+     * Write type byte, name (if $named) and payload
+     *
+     * @throws NbtException
      */
     public function writeData(Writer $writer, bool $named = true): static
     {
-        if ($this->isBeingSerialized) {
-            throw new Exception("Failed to serialize: Circular NBT structure detected");
-        }
-        $this->isBeingSerialized = true;
-        $writer->write(pack("C", static::TYPE & 0xff));
         $serializer = $writer->getSerializer();
+        $serializer->writeByte($this->getType()->value);
         if ($named && static::canBeNamed()) {
-            $name = $this->getName();
-            if (is_null($name)) {
-                throw new Exception("Cannot write named tag, because tag does not have a name value");
+            if ($this->name === null) {
+                throw new InvalidTagValueException("Cannot write named " . $this->getType()->getName() . " because it does not have a name");
             }
-            $serializer->writeString($this->getName());
+            $serializer->writeString($this->name);
         }
-        $this->writeContent($writer);
-        $this->isBeingSerialized = false;
+        $this->writeGuardedContent($writer);
         return $this;
     }
 
     /**
-     * @param Writer $writer
-     * @return $this
-     * @throws Exception
+     * Write this tag as the root tag of an NBT file
+     *
+     * @throws NbtException
      */
     public function write(Writer $writer): static
     {
-        if (!($this instanceof CompoundTag) &&
-            !(in_array($writer->getFormat(), [NbtFormat::BEDROCK_EDITION_NETWORK, NbtFormat::BEDROCK_EDITION]) &&
-                $this instanceof ListTag)) {
-            throw new Exception("NBT files must start with a CompoundTag (or ListTag for Minecraft Bedrock Edition)");
+        $isAllowedRoot = $this instanceof CompoundTag || ($this instanceof ListTag && $writer->getFormat()->allowsListAsRoot());
+        if (!$isAllowedRoot) {
+            throw new InvalidTagValueException("NBT files must start with a CompoundTag (or ListTag for Minecraft Bedrock Edition), got " . $this->getType()->getName());
         }
-        if ($this->getName() === null) {
-            $this->setName("");
-        }
+        $this->name ??= "";
         $this->writeData($writer);
         return $this;
     }
 
     /**
-     * @param string $str
-     * @param int $width
-     * @return string
+     * Write the payload and fail instead of recursing endlessly if this tag contains itself
+     *
+     * @throws NbtException
      */
+    protected function writeGuardedContent(Writer $writer): void
+    {
+        if ($this->isBeingSerialized) {
+            throw new CircularStructureException("Failed to serialize: " . $this->getType()->getName() . " '" . $this->name . "' contains itself");
+        }
+        $this->isBeingSerialized = true;
+        try {
+            $this->writeContent($writer);
+        } finally {
+            $this->isBeingSerialized = false;
+        }
+    }
+
     protected function indent(string $str, int $width = 2): string
     {
-        return str_repeat(" ", $width) . str_replace("\n", "\n  ", $str);
+        $indentation = str_repeat(" ", $width);
+        return $indentation . str_replace("\n", "\n" . $indentation, $str);
     }
 
-    /**
-     * @return string
-     */
     protected function getTagTypeString(): string
     {
-        return TagType::NAMES[static::TYPE];
+        return $this->getType()->getName();
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
-        return $this->getTagTypeString() . "('" . ($this->getName() ?: "None") . "'): " . $this->getValueString();
+        return $this->getTagTypeString() . "('" . ($this->name ?: "None") . "'): " . $this->getValueString();
     }
 
     /**
      * Convert tag to SNBT
      * See https://minecraft.wiki/w/NBT_format#Conversion_to_SNBT
-     *
-     * @return string
      */
     abstract public function toSNBT(): string;
 
     /**
-     * @param Tag $tag
-     * @return bool
+     * Compare type and value, names are ignored
      */
-    abstract function equals(Tag $tag): bool;
+    abstract public function equals(Tag $tag): bool;
 
-    /**
-     * @return string
-     */
     abstract protected function getValueString(): string;
 
     /**
-     * @param int $type
-     * @return class-string<Tag>|null
+     * Read a tag type byte
+     *
+     * @return array{TagType, string} the tag type and the raw byte
+     * @throws UnknownTagTypeException
      */
-    public static function getTagClass(int $type): ?string
+    protected static function readTagType(Reader $reader): array
     {
-        return static::TAGS[$type] ?? null;
+        $type = $reader->getDeserializer()->readByte();
+        $tagType = TagType::tryFrom($type->value);
+        if ($tagType === null) {
+            throw new UnknownTagTypeException("Unknown NBT tag type " . $type->value . " at offset " . ($reader->tell() - 1));
+        }
+        return [$tagType, $type->rawData];
     }
 
     /**
-     * @param Reader $reader
-     * @param TagOptions|null $options
-     * @param Tag|null $parent
-     * @return Tag
-     * @throws Exception
+     * Read a complete named tag
+     *
+     * @throws NbtException
      */
     public static function load(Reader $reader, ?TagOptions $options = null, ?Tag $parent = null): Tag
     {
-        if($options === null) {
-            $options = new TagOptions();
-        }
-
-        $type = $reader->getDeserializer()->readByte()->getValue();
-        $class = static::getTagClass($type);
-        if (is_null($class)) {
-            throw new Exception("Unknown NBT tag type " . $type);
-        }
-        /** @var Tag $tag */
-        $tag = new $class($options);
-        $tag->setParentTag($parent)->read($reader);
-        return $tag;
+        [$type] = static::readTagType($reader);
+        return $type->createTag($options ?? new TagOptions())
+            ->setParentTag($parent)
+            ->read($reader);
     }
 
     /**
-     * @param Reader $reader
-     * @param TagOptions|null $options
-     * @return RawTagReadResult
-     * @throws Exception
+     * Read a complete named tag without parsing it
+     *
+     * @throws NbtException
      */
     public static function loadRaw(Reader $reader, ?TagOptions $options = null): RawTagReadResult
     {
-        if($options === null) {
-            $options = new TagOptions();
-        }
-
-        $type = $reader->getDeserializer()->readByte();
-        $class = static::getTagClass($type->getValue());
-        if (is_null($class)) {
-            throw new Exception("Unknown NBT tag type " . $type->getValue());
-        }
-        /** @var Tag $class */
-        $data = $class::readRaw($reader, $options);
-        return new RawTagReadResult($type->getRawData() . $data, $type->getValue());
+        [$type, $rawType] = static::readTagType($reader);
+        $data = $type->getTagClass()::readRaw($reader, $options ?? new TagOptions());
+        return new RawTagReadResult($rawType . $data, $type);
     }
 }

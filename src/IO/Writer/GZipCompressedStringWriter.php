@@ -1,18 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\IO\Writer;
 
-use Exception;
+use Aternos\Nbt\Exception\CompressionException;
+use Override;
 
 class GZipCompressedStringWriter extends StringWriter
 {
     /**
-     * @throws Exception
+     * @throws CompressionException
      */
+    #[Override]
     public function getStringData(): string
     {
-        if (($compressed = @gzencode(parent::getStringData())) === false) {
-            throw new Exception("Failed to apply GZip compression");
+        $compressed = @gzencode(parent::getStringData());
+        if ($compressed === false) {
+            throw new CompressionException("Failed to apply GZip compression");
         }
         return $compressed;
     }

@@ -1,73 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Override;
 
+/**
+ * Marks the end of a compound tag, has no name and no payload
+ */
 class EndTag extends Tag
 {
-    public const TYPE = TagType::TAG_End;
+    public const TagType TYPE = TagType::End;
 
-    /**
-     * @inheritDoc
-     */
-    public function writeContent(Writer $writer): static
+    #[Override]
+    public function getType(): TagType
     {
-        return $this;
+        return self::TYPE;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    protected function writeContent(Writer $writer): void
     {
-        return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
+    protected function readContent(Reader $reader): void
+    {
+    }
+
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         return "";
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public static function canBeNamed(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
         return "";
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function jsonSerialize(): mixed
+    #[Override]
+    public function jsonSerialize(): null
     {
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    function equals(Tag $tag): bool
+    #[Override]
+    public function equals(Tag $tag): bool
     {
-        return $tag->getType() === $this->getType();
+        return $tag instanceof EndTag;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
         return "";

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tests;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\IO\Reader\StringReader;
 use Aternos\Nbt\IO\Writer\StringWriter;
 use Aternos\Nbt\NbtFormat;
@@ -29,7 +32,7 @@ class RegressionTest extends TestCase
             ->set("raw", new CompoundTag()->set("longs", $longArray))
             ->set("after", new IntTag()->setValue(42));
 
-        foreach ([NbtFormat::JAVA_EDITION, NbtFormat::BEDROCK_EDITION, NbtFormat::BEDROCK_EDITION_NETWORK] as $format) {
+        foreach ([NbtFormat::JavaEdition, NbtFormat::BedrockEdition, NbtFormat::BedrockEditionNetwork] as $format) {
             $writer = new StringWriter()->setFormat($format);
             $root->write($writer);
             $data = $writer->getStringData();
@@ -56,9 +59,9 @@ class RegressionTest extends TestCase
             ->set("b", $renamed);
         $renamed->setName("a");
 
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidTagValueException::class);
         $this->expectExceptionMessage("Duplicate key 'a'");
-        $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
+        $root->write(new StringWriter()->setFormat(NbtFormat::JavaEdition));
     }
 
     public function testByteArrayStringShowsBytesAsTwoHexDigits(): void

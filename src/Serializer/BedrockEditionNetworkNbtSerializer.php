@@ -1,53 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Serializer;
 
 use Aternos\Nbt\NbtFormat;
+use Override;
 use pocketmine\utils\Binary;
 
 class BedrockEditionNetworkNbtSerializer extends BedrockEditionNbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
+    #[Override]
+    public function getFormat(): NbtFormat
     {
-        return NbtFormat::BEDROCK_EDITION_NETWORK;
+        return NbtFormat::BedrockEditionNetwork;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeVarInt($value));
-        return $this;
+        return $this->writeInt($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeStringLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeUnsignedVarInt($value));
+        $this->writer->write(Binary::writeUnsignedVarInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeInt(int $value): static
     {
-        $this->getWriter()->write(Binary::writeVarInt($value));
+        $this->writer->write(Binary::writeVarInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLong(int $value): static
     {
-        $this->getWriter()->write(Binary::writeVarLong($value));
+        $this->writer->write(Binary::writeVarLong($value));
         return $this;
     }
 }

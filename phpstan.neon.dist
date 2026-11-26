@@ -1,0 +1,12 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/phpstan/phpstan-phpunit/rules.neon
+
+parameters:
+    level: max
+    phpVersion: 80400
+    paths:
+        - src
+        - tests
+    # public methods validate their input at runtime even where phpdoc already narrows the type
+    treatPhpDocTypesAsCertain: false

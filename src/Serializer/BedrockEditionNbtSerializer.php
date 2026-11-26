@@ -1,101 +1,82 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Serializer;
 
-use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
+use Override;
 use pocketmine\utils\Binary;
 
 class BedrockEditionNbtSerializer extends NbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
+    #[Override]
+    public function getFormat(): NbtFormat
     {
-        return NbtFormat::BEDROCK_EDITION;
+        return NbtFormat::BedrockEdition;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLInt(Binary::unsignInt($value)));
-        return $this;
+        return $this->writeInt($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeStringLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLShort($value));
+        $this->writer->write(Binary::writeLShort($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeByte(int $value): static
     {
-        $this->getWriter()->write(Binary::writeByte(Binary::unsignByte($value)));
+        $this->writer->write(Binary::writeByte($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeShort(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLShort(Binary::unsignShort($value)));
+        $this->writer->write(Binary::writeLShort($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeInt(int $value): static
     {
-        $this->getWriter()->write(Binary::writeLInt(Binary::unsignInt($value)));
+        $this->writer->write(Binary::writeLInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLong(int $value): static
     {
-        $packed = pack("q", $value);
-        $this->getWriter()->write(MachineByteOrder::isBigEndian() ? strrev($packed) : $packed);
+        $this->writer->write(Binary::writeLLong($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeFloat(float $value): static
     {
-        $this->getWriter()->write(Binary::writeLFloat($value));
+        $this->writer->write(Binary::writeLFloat($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeDouble(float $value): static
     {
-        $this->getWriter()->write(Binary::writeLDouble($value));
+        $this->writer->write(Binary::writeLDouble($value));
         return $this;
     }
 
     /**
-     * @inheritDoc
+     * Bedrock Edition strings are plain UTF-8
      */
-    public function writeString(string $value): static
+    #[Override]
+    public function encodeString(string $value): string
     {
-        $this->writeStringLengthPrefix(strlen($value));
-        $this->getWriter()->write($value);
-        return $this;
+        return $value;
     }
 }

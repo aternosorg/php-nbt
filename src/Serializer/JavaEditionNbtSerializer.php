@@ -1,103 +1,79 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Serializer;
 
-use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
+use Override;
 use pocketmine\utils\Binary;
 
 class JavaEditionNbtSerializer extends NbtSerializer
 {
-    /**
-     * @inheritDoc
-     */
-    public function getFormat(): int
+    #[Override]
+    public function getFormat(): NbtFormat
     {
-        return NbtFormat::JAVA_EDITION;
+        return NbtFormat::JavaEdition;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeInt(Binary::unsignInt($value)));
-        return $this;
+        return $this->writeInt($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeStringLengthPrefix(int $value): static
     {
-        $this->getWriter()->write(Binary::writeShort($value));
-        return $this;
+        return $this->writeShort($value);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeByte(int $value): static
     {
-        $this->getWriter()->write(Binary::writeByte(Binary::unsignByte($value)));
+        $this->writer->write(Binary::writeByte($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeShort(int $value): static
     {
-        $this->getWriter()->write(Binary::writeShort(Binary::unsignShort($value)));
+        $this->writer->write(Binary::writeShort($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeInt(int $value): static
     {
-        $this->getWriter()->write(Binary::writeInt(Binary::unsignInt($value)));
+        $this->writer->write(Binary::writeInt($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeLong(int $value): static
     {
-        $packed = pack("q", $value);
-        $this->getWriter()->write(MachineByteOrder::isLittleEndian() ? strrev($packed) : $packed);
+        $this->writer->write(Binary::writeLong($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeFloat(float $value): static
     {
-        $this->getWriter()->write(Binary::writeFloat($value));
+        $this->writer->write(Binary::writeFloat($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function writeDouble(float $value): static
     {
-        $this->getWriter()->write(Binary::writeDouble($value));
+        $this->writer->write(Binary::writeDouble($value));
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function writeString(string $value): static
+    #[Override]
+    public function encodeString(string $value): string
     {
-        $encoded = JavaEncoding::getInstance()->encode($value);
-        $this->writeStringLengthPrefix(strlen($encoded));
-        $this->getWriter()->write($encoded);
-        return $this;
+        return JavaEncoding::encode($value);
     }
 }

@@ -1,244 +1,207 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\Exception\RawTagModificationException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\NbtFormat;
 use Countable;
-use Exception;
-use Iterator;
+use Generator;
+use IteratorAggregate;
+use Override;
 
-class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
+/**
+ * A map of named tags that keeps the insertion order
+ *
+ * @implements IteratorAggregate<string, Tag>
+ * @implements ArrayAccess<string, Tag>
+ */
+class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countable
 {
-    public const TYPE = TagType::TAG_Compound;
+    public const TagType TYPE = TagType::Compound;
 
     /**
-     * @var Tag[]
+     * Children are looked up by their current name, so renaming a child with setName() also changes its key
+     *
+     * @var list<Tag>
      */
     protected array $valueArray = [];
     protected ?string $rawContent = null;
-    protected ?int $rawContentFormat = null;
+    protected ?NbtFormat $rawContentFormat = null;
 
-    /**
-     * @return bool
-     */
+    #[Override]
+    public function getType(): TagType
+    {
+        return self::TYPE;
+    }
+
     public function isRaw(): bool
     {
         return $this->rawContent !== null;
     }
 
     /**
-     * @inheritDoc
-     * @throws Exception
+     * @throws RawTagModificationException
      */
-    public function writeContent(Writer $writer): static
+    protected function assertNotRaw(): void
     {
-        if($this->isRaw()) {
-            if($this->rawContentFormat !== $writer->getFormat()) {
-                throw new Exception("Cannot change format of raw compound tag");
+        if ($this->isRaw()) {
+            throw new RawTagModificationException("Raw " . $this->describe() . " cannot be modified");
+        }
+    }
+
+    protected function describe(): string
+    {
+        return $this->getType()->getName() . " '" . ($this->getStringPath() ?? $this->name) . "'";
+    }
+
+    #[Override]
+    protected function writeContent(Writer $writer): void
+    {
+        if ($this->rawContent !== null) {
+            if ($this->rawContentFormat !== $writer->getFormat()) {
+                throw new RawTagModificationException("Cannot change format of raw " . $this->describe());
             }
             $writer->write($this->rawContent);
-            return $this;
+            return;
         }
 
         $writtenNames = [];
         foreach ($this->valueArray as $value) {
-            if (in_array($value->getName(), $writtenNames, true)) {
-                throw new Exception("Duplicate key '" . $value->getName() . "' in compound tag");
+            $name = $value->getName() ?? "";
+            if (isset($writtenNames[$name])) {
+                throw new InvalidTagValueException("Duplicate key '" . $name . "' in " . $this->describe());
             }
-            $writtenNames[] = $value->getName();
+            $writtenNames[$name] = true;
             $value->writeData($writer);
         }
-        (new EndTag($this->options))->writeData($writer);
-        return $this;
+        new EndTag($this->options)->writeData($writer);
     }
 
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    protected function readContent(Reader $reader): static
+    #[Override]
+    protected function readContent(Reader $reader): void
     {
-        if($this->options->shouldBeReadRaw($this)) {
+        if ($this->options->shouldBeReadRaw($this)) {
             $this->rawContentFormat = $reader->getFormat();
             $this->rawContent = static::readContentRaw($reader, $this->options);
-            return $this;
+            return;
         }
-        while (!(($tag = Tag::load($reader, $this->options, $this)) instanceof EndTag)) {
-            $this->valueArray[] = $tag->setParentTag($this);
+        while (!($tag = Tag::load($reader, $this->options, $this)) instanceof EndTag) {
+            $this->valueArray[] = $tag;
         }
-        return $this;
     }
 
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
+    #[Override]
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         $result = "";
         do {
             $tag = Tag::loadRaw($reader, $options);
-            $result .= $tag->getData();
-        } while ($tag->getTagType() !== TagType::TAG_End);
+            $result .= $tag->data;
+        } while ($tag->tagType !== TagType::End);
         return $result;
     }
 
     /**
+     * @param string|null $offset the name of the tag, null to use the existing name of $value
      * @param Tag $value
-     * @inheritDoc
-     * @throws Exception
+     * @throws NbtException
      */
-    public function offsetSet($offset, $value): void
+    #[Override]
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        if (!($value instanceof Tag) || $value instanceof EndTag) {
-            throw new Exception("Invalid CompoundTag value");
+        if (!$value instanceof Tag || $value instanceof EndTag) {
+            throw new InvalidTagValueException("Invalid value of type " . get_debug_type($value) . " for " . $this->describe());
         }
-        if (!is_string($offset) && !is_null($offset)) {
-            throw new Exception("Invalid CompoundTag key");
+        if (!is_string($offset) && $offset !== null) {
+            throw new InvalidTagValueException("Invalid key of type " . get_debug_type($offset) . " for " . $this->describe() . ", keys must be strings");
         }
-        if($this->isRaw()) {
-            throw new Exception("Raw compound tags cannot be modified");
-        }
-        if (is_null($offset) && is_null($value->getName())) {
-            throw new Exception("Tags inside a CompoundTag must be named.");
-        }
-        if (!is_null($offset)) {
-            $value->setName($offset);
-        } else {
-            $offset = $value->getName();
-        }
-        $value->setParentTag($this);
-        $this->offsetUnset($offset);
-        $this->valueArray[] = $value;
+        $this->assertNotRaw();
+
+        $name = $offset ?? $value->getName()
+            ?? throw new InvalidTagValueException("Tags inside a CompoundTag must be named, " . $value->getType()->getName() . " has no name");
+        $this->offsetUnset($name);
+        $this->valueArray[] = $value->setName($name)->setParentTag($this);
     }
 
     /**
-     * @inheritDoc
+     * Iterates over the children with their names as keys (also numeric names stay strings)
+     *
+     * @return Generator<string, Tag>
      */
-    public function current(): bool|Tag
+    #[Override]
+    public function getIterator(): Generator
     {
-        return current($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function next(): void
-    {
-        next($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function key(): ?string
-    {
-        return $this->current()->getName();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function valid(): bool
-    {
-        return current($this->valueArray) !== false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function rewind(): void
-    {
-        reset($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetExists($offset): bool
-    {
-        foreach ($this->valueArray as $val) {
-            if ($val->getName() === $offset) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetGet($offset): ?Tag
-    {
-        foreach ($this->valueArray as $val) {
-            if ($val->getName() === $offset) {
-                return $val;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    public function offsetUnset($offset): void
-    {
-        if($this->isRaw()) {
-            throw new Exception("Raw compound tags cannot be modified");
-        }
-        foreach ($this->valueArray as $i => $val) {
-            if ($val->getName() === $offset) {
-                $val->setParentTag(null);
-                unset($this->valueArray[$i]);
-                break;
-            }
+        foreach ($this->valueArray as $value) {
+            yield $value->getName() ?? "" => $value;
         }
     }
 
+    #[Override]
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->offsetGet($offset) !== null;
+    }
+
+    #[Override]
+    public function offsetGet(mixed $offset): ?Tag
+    {
+        return array_find($this->valueArray, fn(Tag $value): bool => $value->getName() === $offset);
+    }
+
     /**
-     * @inheritDoc
+     * @throws RawTagModificationException
      */
+    #[Override]
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->assertNotRaw();
+        $index = array_find_key($this->valueArray, fn(Tag $value): bool => $value->getName() === $offset);
+        if ($index === null) {
+            return;
+        }
+        $this->valueArray[$index]->setParentTag(null);
+        array_splice($this->valueArray, $index, 1);
+    }
+
+    #[Override]
     public function count(): int
     {
         return count($this->valueArray);
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     protected function getValueString(): string
     {
-        if($this->isRaw()) {
+        if ($this->rawContent !== null) {
             return strlen($this->rawContent) . " bytes";
         }
-        return $this->count() . " entr" . ($this->count() === 1 ? "y" : "ies") . "\n{\n" .
-            $this->indent(implode(", \n", array_map(strval(...), array_values($this->valueArray)))) .
+        $count = $this->count();
+        return $count . " entr" . ($count === 1 ? "y" : "ies") . "\n{\n" .
+            $this->indent(implode(", \n", array_map(strval(...), $this->valueArray))) .
             "\n}";
     }
 
     /**
-     * @inheritDoc
+     * @return array<string, Tag>
      */
+    #[Override]
     public function jsonSerialize(): array
     {
-        $data = [];
-        foreach ($this->valueArray as $value) {
-            $data[$value->getName()] = $value;
-        }
-        return $data;
+        return iterator_to_array($this->getIterator());
     }
 
     /**
      * Set a child tag by name
-     * If $name is null, the existing name of the tag object will be used
      *
-     * @param string|null $name
-     * @param Tag $tag
-     * @return $this
-     * @throws Exception
+     * @param string|null $name the name of the tag, null to use the existing name of $tag
+     * @throws NbtException
      */
     public function set(?string $name, Tag $tag): static
     {
@@ -247,9 +210,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @param string $name
-     * @return $this
-     * @throws Exception
+     * @throws RawTagModificationException
      */
     public function delete(string $name): static
     {
@@ -257,173 +218,114 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
         return $this;
     }
 
-    /**
-     * Get a child tag by name
-     *
-     * @param string $name
-     * @return Tag|null
-     */
     public function get(string $name): ?Tag
     {
         return $this->offsetGet($name);
     }
 
     /**
-     * @param string $name
-     * @return ByteArrayTag|null
+     * @template T of Tag
+     * @param class-string<T> $class
+     * @return T|null
      */
-    public function getByteArray(string $name): ?ByteArrayTag
+    public function getOfClass(string $name, string $class): ?Tag
     {
         $tag = $this->get($name);
-        return $tag instanceof ByteArrayTag ? $tag : null;
+        return $tag instanceof $class ? $tag : null;
     }
 
-    /**
-     * @param string $name
-     * @return ByteTag|null
-     */
     public function getByte(string $name): ?ByteTag
     {
-        $tag = $this->get($name);
-        return $tag instanceof ByteTag ? $tag : null;
+        return $this->getOfClass($name, ByteTag::class);
     }
 
-    /**
-     * @param string $name
-     * @return CompoundTag|null
-     */
-    public function getCompound(string $name): ?CompoundTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof CompoundTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @return DoubleTag|null
-     */
-    public function getDouble(string $name): ?DoubleTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof DoubleTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @return FloatTag|null
-     */
-    public function getFloat(string $name): ?FloatTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof FloatTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @return IntArrayTag|null
-     */
-    public function getIntArray(string $name): ?IntArrayTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof IntArrayTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @return IntTag|null
-     */
-    public function getInt(string $name): ?IntTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof IntTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @param int|null $listContentTag - Required content type for the list, if null, any type can be returned
-     * @return ListTag|null
-     */
-    public function getList(string $name, ?int $listContentTag = null): ?ListTag
-    {
-        $tag = $this->get($name);
-        if (!$tag instanceof ListTag || ($listContentTag !== null && $tag->getContentTag() !== $listContentTag)) {
-            return null;
-        }
-        return $tag;
-    }
-
-    /**
-     * @param string $name
-     * @return LongArrayTag|null
-     */
-    public function getLongArray(string $name): ?LongArrayTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof LongArrayTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @return LongTag|null
-     */
-    public function getLong(string $name): ?LongTag
-    {
-        $tag = $this->get($name);
-        return $tag instanceof LongTag ? $tag : null;
-    }
-
-    /**
-     * @param string $name
-     * @return ShortTag|null
-     */
     public function getShort(string $name): ?ShortTag
     {
-        $tag = $this->get($name);
-        return $tag instanceof ShortTag ? $tag : null;
+        return $this->getOfClass($name, ShortTag::class);
     }
 
-    /**
-     * @param string $name
-     * @return StringTag|null
-     */
+    public function getInt(string $name): ?IntTag
+    {
+        return $this->getOfClass($name, IntTag::class);
+    }
+
+    public function getLong(string $name): ?LongTag
+    {
+        return $this->getOfClass($name, LongTag::class);
+    }
+
+    public function getFloat(string $name): ?FloatTag
+    {
+        return $this->getOfClass($name, FloatTag::class);
+    }
+
+    public function getDouble(string $name): ?DoubleTag
+    {
+        return $this->getOfClass($name, DoubleTag::class);
+    }
+
     public function getString(string $name): ?StringTag
     {
-        $tag = $this->get($name);
-        return $tag instanceof StringTag ? $tag : null;
+        return $this->getOfClass($name, StringTag::class);
+    }
+
+    public function getByteArray(string $name): ?ByteArrayTag
+    {
+        return $this->getOfClass($name, ByteArrayTag::class);
+    }
+
+    public function getIntArray(string $name): ?IntArrayTag
+    {
+        return $this->getOfClass($name, IntArrayTag::class);
+    }
+
+    public function getLongArray(string $name): ?LongArrayTag
+    {
+        return $this->getOfClass($name, LongArrayTag::class);
+    }
+
+    public function getCompound(string $name): ?CompoundTag
+    {
+        return $this->getOfClass($name, CompoundTag::class);
     }
 
     /**
-     * @inheritDoc
+     * @param TagType|null $contentType required content type of the list, null to accept any type
      */
-    function equals(Tag $tag): bool
+    public function getList(string $name, ?TagType $contentType = null): ?ListTag
+    {
+        $list = $this->getOfClass($name, ListTag::class);
+        if ($list === null || ($contentType !== null && $list->getContentType() !== $contentType)) {
+            return null;
+        }
+        return $list;
+    }
+
+    #[Override]
+    public function equals(Tag $tag): bool
     {
         if ($tag === $this) {
             return true;
         }
-        if (!$tag instanceof CompoundTag || $this->getType() !== $tag->getType() || count($tag) !== count($this)) {
+        if (!$tag instanceof CompoundTag || count($tag) !== count($this)) {
             return false;
         }
-        /**
-         * @var string $key
-         * @var Tag $val
-         */
-        foreach ($this as $key => $val) {
-            if (!isset($tag[$key]) || !$val->equals($tag[$key])) {
+        foreach ($this->valueArray as $value) {
+            $other = $tag->offsetGet($value->getName() ?? "");
+            if ($other === null || !$value->equals($other)) {
                 return false;
             }
         }
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function toSNBT(): string
     {
-        $data = [];
-        foreach ($this->valueArray as $value) {
-            $data[] = StringTag::encodeSNBTString($value->getName()) . ": " . $value->toSNBT();
-        }
-        return "{" . implode(", ", $data) . "}";
+        $entries = array_map(
+            fn(Tag $value): string => StringTag::encodeSNBTString($value->getName() ?? "") . ": " . $value->toSNBT(),
+            $this->valueArray
+        );
+        return "{" . implode(", ", $entries) . "}";
     }
 }
