@@ -153,6 +153,15 @@ class TagManipulationTest extends TestCase
         $this->assertSame([0, 1], $values);
     }
 
+    public function testByteArrayStringShowsBytesAsTwoHexDigits(): void
+    {
+        $array = new ByteArrayTag()->setName("bytes");
+        foreach ([0, 1, -1, 127, -128] as $value) {
+            $array[] = $value;
+        }
+        $this->assertSame("TAG_Byte_Array('bytes'): 5 bytes [00 01 ff 7f 80]", strval($array));
+    }
+
     public function testArrayRejectsInvalidValue(): void
     {
         $array = new ByteArrayTag();
