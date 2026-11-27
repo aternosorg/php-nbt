@@ -36,8 +36,9 @@ trait RawValueTag
     }
 
     /**
-     * @param int $format
+     * @param NbtFormat $format
      * @return bool
+     * @phpstan-assert-if-true !null $this->rawValue
      */
     protected function rawValueValid(NbtFormat $format): bool
     {
@@ -46,7 +47,7 @@ trait RawValueTag
 
     /**
      * @param DeserializerReadResult $result
-     * @param int $format
+     * @param NbtFormat $format
      * @return void
      */
     protected function setRawDataFromSerializer(DeserializerReadResult $result, NbtFormat $format): void

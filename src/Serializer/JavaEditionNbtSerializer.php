@@ -93,7 +93,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeString(string $value): static
     {
-        $encoded = JavaEncoding::getInstance()->encode($value);
+        $encoded = JavaEncoding::encode($value);
         $this->writeStringLengthPrefix(strlen($encoded));
         $this->getWriter()->write($encoded);
         return $this;

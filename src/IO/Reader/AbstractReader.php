@@ -26,7 +26,7 @@ abstract class AbstractReader implements Reader
     }
 
     /**
-     * @param int $format
+     * @param NbtFormat $format
      * @return $this
      */
     public function setFormat(NbtFormat $format): static

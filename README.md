@@ -153,6 +153,7 @@ Version 2 contains these breaking changes:
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
   `RawTagReadResult::getTagType()` returns `TagType` as well.
 - `ByteTag`, `ShortTag` and `IntTag`, and the values of `ByteArrayTag` and `IntArrayTag`, reject values outside the range of their type with an `InvalidTagValueException` instead of silently truncating them when written.
+- `JavaEncoding` is `final` and has static `encode()`/`decode()` methods instead of a singleton: `JavaEncoding::getInstance()->encode($string)` becomes `JavaEncoding::encode($string)`.
 - Truncated input throws an `Aternos\Nbt\IO\BinaryDataException` (a subclass of `NbtException`) instead of a `pocketmine\utils\BinaryDataException`, because the dependency on `pocketmine/binaryutils` was removed.
 - `Aternos\Nbt\MachineByteOrder` is removed.
   Longs are read and written with the new `Binary::readLong()`/`writeLong()` (big endian) and `Binary::readLLong()`/`writeLLong()` (little endian), which do not depend on the byte order of the machine.
