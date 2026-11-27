@@ -12,13 +12,14 @@ use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
 use Countable;
-use Iterator;
+use Generator;
+use IteratorAggregate;
 
 /**
- * @implements Iterator<string, Tag>
+ * @implements IteratorAggregate<string, Tag>
  * @implements ArrayAccess<string, Tag>
  */
-class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
+class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countable
 {
     public const TagType TYPE = TagType::COMPOUND;
 
@@ -127,43 +128,15 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
     }
 
     /**
-     * @inheritDoc
+     * Iterates over the children with their names as keys
+     *
+     * @return Generator<string, Tag>
      */
-    public function current(): bool|Tag
+    public function getIterator(): Generator
     {
-        return current($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function next(): void
-    {
-        next($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function key(): ?string
-    {
-        return $this->current()->getName();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function valid(): bool
-    {
-        return current($this->valueArray) !== false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function rewind(): void
-    {
-        reset($this->valueArray);
+        foreach ($this->valueArray as $value) {
+            yield $value->getName() => $value;
+        }
     }
 
     /**

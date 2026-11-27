@@ -58,8 +58,8 @@ On String tags, `getValue()` and `setValue()` use the UTF-8 encoding and convert
 when being serialized.
 
 
-Compound tags, list tags, and array tags implement the `ArrayAccess`, `Countable`,
-and `Iterator` interfaces and can therefore be accessed as arrays.
+Compound tags, list tags, and array tags implement the `ArrayAccess` and `Countable` interfaces
+and can be iterated with `foreach`, so they can be accessed as arrays.
 ```php
 $myCompound = new \Aternos\Nbt\Tag\CompoundTag();
 
@@ -158,3 +158,5 @@ Version 2 contains these breaking changes:
 - The `RawValueTag` trait is removed.
   `FloatTag` and `DoubleTag` still keep the bytes they were read from and return them from `getRawValue()`, but `setRawValue()` is gone.
   `LongTag` and `LongArrayTag` no longer keep raw values, because every long fits into a PHP int and is written back unchanged.
+- `CompoundTag` implements `IteratorAggregate` instead of `Iterator`: `getIterator()` yields the children with their names as keys, and `current()`, `next()`, `key()`, `valid()` and `rewind()` are gone.
+  Nested `foreach` loops over the same compound work now, because each loop gets its own iterator.
