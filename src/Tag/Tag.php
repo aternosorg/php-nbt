@@ -80,13 +80,14 @@ abstract class Tag implements JsonSerializable
             throw new CircularStructureException("Failed to resolve path: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        if($this->parentTag) {
-            $path = [...$this->parentTag->getPath(), $this->getName()];
-        }else {
-            $path = [$this->getName()];
+        try {
+            if($this->parentTag) {
+                return [...$this->parentTag->getPath(), $this->getName()];
+            }
+            return [$this->getName()];
+        } finally {
+            $this->isBeingSerialized = false;
         }
-        $this->isBeingSerialized = false;
-        return $path;
     }
 
     /**
@@ -207,8 +208,12 @@ abstract class Tag implements JsonSerializable
                 ($this->name !== null ? " '" . $this->name . "'" : "") . ": Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        $this->writeContent($writer);
-        $this->isBeingSerialized = false;
+        try {
+            $this->writeContent($writer);
+        } finally {
+            // Also reset after a failed write, otherwise the next write would report a circular structure
+            $this->isBeingSerialized = false;
+        }
     }
 
     /**

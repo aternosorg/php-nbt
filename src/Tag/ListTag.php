@@ -12,6 +12,9 @@ use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
 
+/**
+ * @extends ArrayValueTag<Tag>
+ */
 class ListTag extends ArrayValueTag
 {
     public const TagType TYPE = TagType::LIST;
@@ -63,7 +66,7 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @param int $contentTagType
+     * @param TagType $contentType
      * @return $this
      * @throws NbtException
      */
@@ -156,7 +159,7 @@ class ListTag extends ArrayValueTag
     /**
      * @param Reader $reader
      * @param TagOptions $options
-     * @param int $contentType
+     * @param TagType $contentType
      * @param int $length
      * @return string
      * @throws NbtException
@@ -174,6 +177,9 @@ class ListTag extends ArrayValueTag
 
     /**
      * @return bool
+     * @phpstan-assert-if-true !null $this->rawContent
+     * @phpstan-assert-if-true !null $this->rawContentLength
+     * @phpstan-assert-if-true !null $this->rawContentFormat
      */
     public function isRaw(): bool
     {
