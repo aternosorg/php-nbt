@@ -160,6 +160,21 @@ class TagManipulationTest extends TestCase
         $this->assertSame(["b" => 1, "a" => 2], $values);
     }
 
+    public function testCompoundSupportsNestedIteration(): void
+    {
+        $compound = new CompoundTag()
+            ->set("a", new IntTag()->setValue(1))
+            ->set("b", new IntTag()->setValue(2));
+
+        $pairs = [];
+        foreach ($compound as $outerName => $outer) {
+            foreach ($compound as $innerName => $inner) {
+                $pairs[] = $outerName . $innerName;
+            }
+        }
+        $this->assertSame(["aa", "ab", "ba", "bb"], $pairs);
+    }
+
     /**
      * @throws Exception
      */
