@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tests;
 
-use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\ArrayValueTag;
 use Aternos\Nbt\Tag\ByteArrayTag;
@@ -22,7 +21,6 @@ use Aternos\Nbt\Tag\ShortTag;
 use Aternos\Nbt\Tag\StringTag;
 use Aternos\Nbt\Tag\Tag;
 use Aternos\Nbt\Tag\TagType;
-use Aternos\Nbt\IO\Reader\StringReader;
 use Aternos\Nbt\IO\Writer\StringWriter;
 use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -224,29 +222,6 @@ class TagManipulationTest extends TestCase
         unset($list[0]);
         $this->assertNull($new->getParentTag());
         $this->assertCount(1, $list);
-        $this->assertSame(2, $list[0]->getValue(), "entries after an unset entry move down");
-    }
-
-    public function testListRejectsOffsetsThatWouldLeaveGaps(): void
-    {
-        $list = TagFixtures::intList(1);
-        $this->expectExceptionObject(new InvalidTagValueException("Invalid offset 5 for TAG_List with 1 entries"));
-        $list[5] = new IntTag();
-    }
-
-    public function testListRejectsDifferentContentTypeWithMessage(): void
-    {
-        $list = TagFixtures::intList(1);
-        $this->expectExceptionObject(new InvalidTagValueException("Cannot add TAG_String to TAG_List with content type TAG_Int"));
-        $list[] = new StringTag();
-    }
-
-    public function testListAppendsAtOffsetEqualToCount(): void
-    {
-        $list = TagFixtures::intList(1);
-        $list[1] = new IntTag()->setValue(2);
-        $this->assertCount(2, $list);
-        $this->assertSame(2, $list[1]->getValue());
     }
 
     public function testListIteration(): void
@@ -278,72 +253,6 @@ class TagManipulationTest extends TestCase
             $array[] = $value;
         }
         $this->assertSame("TAG_Byte_Array('bytes'): 5 bytes [00 01 ff 7f 80]", strval($array));
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testSetValuesKeepsIndicesContinuous(): void
-    {
-        $array = new ByteArrayTag()->setValues([3 => 1, 7 => 2]);
-        $array[] = 5;
-
-        $this->assertSame([1, 2, 5], $array->getValues());
-        $this->assertSame(1, $array[0]);
-    }
-
-    public function testSetValuesRejectsValuesThatAreNoInts(): void
-    {
-        $this->expectExceptionObject(new InvalidTagValueException("Invalid value of type string for TAG_Byte_Array"));
-        new ByteArrayTag()->setValues(["1"]);
-    }
-
-    public function testSetValuesRejectsValuesOutOfRangeAndKeepsOldValues(): void
-    {
-        $array = new IntArrayTag()->setValues([1]);
-        try {
-            $array->setValues([0, 0x80000000]);
-            $this->fail("Expected an InvalidTagValueException");
-        } catch (InvalidTagValueException $exception) {
-            $this->assertSame("Value 2147483648 is out of range for TAG_Int_Array (-2147483648 to 2147483647)", $exception->getMessage());
-        }
-        $this->assertSame([1], $array->getValues());
-    }
-
-    public function testArrayGetReturnsNullForMissingOffset(): void
-    {
-        $array = new IntArrayTag()->setValues([1]);
-        $this->assertNull($array[1]);
-        $this->assertNull($array["a"]);
-        $this->assertFalse(isset($array[1]));
-    }
-
-    public function testArrayRejectsNegativeOffset(): void
-    {
-        $array = new IntArrayTag()->setValues([1]);
-        $this->expectExceptionObject(new InvalidTagValueException("Invalid offset -1 for TAG_Int_Array with 1 entries"));
-        $array[-1] = 2;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testLongArrayIsWrittenWithValuesSetAfterReading(): void
-    {
-        $original = new CompoundTag()->set("longs", new LongArrayTag()->setValues([1, 2, 3]));
-        $writer = new StringWriter();
-        $original->write($writer);
-
-        /** @var CompoundTag $read */
-        $read = Tag::load(new StringReader($writer->getStringData(), NbtFormat::JAVA_EDITION));
-        $longs = $read->getLongArray("longs");
-        $longs->setValues([2, 3, 4]);
-
-        $writer = new StringWriter();
-        $read->write($writer);
-        /** @var CompoundTag $reread */
-        $reread = Tag::load(new StringReader($writer->getStringData(), NbtFormat::JAVA_EDITION));
-        $this->assertSame([2, 3, 4], $reread->getLongArray("longs")->getValues());
     }
 
     public function testArrayRejectsInvalidValue(): void
@@ -496,7 +405,7 @@ class TagManipulationTest extends TestCase
     public function testArrayRejectsNonIntegerKeys(ArrayValueTag $array): void
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage("Invalid offset 'a' for " . $array->getType()->getName() . " with 0 entries");
+        $this->expectExceptionMessage("Invalid array offset a");
         $array["a"] = 1;
     }
 
@@ -511,9 +420,8 @@ class TagManipulationTest extends TestCase
         $this->assertSame(3, $array[0]);
 
         unset($array[0]);
+        $this->assertFalse(isset($array[0]));
         $this->assertCount(1, $array);
-        $this->assertSame(2, $array[0], "entries after an unset entry move down");
-        $this->assertFalse(isset($array[1]));
     }
 
     /**

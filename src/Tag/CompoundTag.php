@@ -17,13 +17,14 @@ use IteratorAggregate;
 
 /**
  * @implements IteratorAggregate<string, Tag>
+ * @implements ArrayAccess<string, Tag>
  */
 class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countable
 {
     public const TagType TYPE = TagType::COMPOUND;
 
     /**
-     * @var Tag[]
+     * @var array<int, Tag>
      */
     protected array $valueArray = [];
     protected ?string $rawContent = null;
@@ -31,6 +32,8 @@ class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countab
 
     /**
      * @return bool
+     * @phpstan-assert-if-true !null $this->rawContent
+     * @phpstan-assert-if-true !null $this->rawContentFormat
      */
     public function isRaw(): bool
     {
@@ -219,6 +222,7 @@ class CompoundTag extends Tag implements IteratorAggregate, ArrayAccess, Countab
 
     /**
      * @inheritDoc
+     * @return array<string, Tag>
      */
     public function jsonSerialize(): array
     {

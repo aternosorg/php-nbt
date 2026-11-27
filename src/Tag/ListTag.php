@@ -13,8 +13,6 @@ use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
 
 /**
- * A list of unnamed tags that all have the same type
- *
  * @extends ArrayValueTag<Tag>
  */
 class ListTag extends ArrayValueTag
@@ -68,7 +66,7 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @param int $contentTagType
+     * @param TagType $contentType
      * @return $this
      * @throws NbtException
      */
@@ -103,20 +101,18 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * Accepts tags of the content type, or any tag if the list is empty and has no content type yet
+     * @inheritDoc
      */
-    protected function checkValue(mixed $value): void
+    protected function checkArrayValue($value): bool
     {
-        if (!$value instanceof Tag) {
-            throw new InvalidTagValueException("Invalid value of type " . get_debug_type($value) . " for " . $this->getType()->getName());
+        if (!($value instanceof Tag)) {
+            return false;
         }
-        if ($this->contentType === TagType::END && $this->count() === 0) {
-            return;
+        if ($this->count() === 0 && $this->contentType === TagType::END) {
+            $this->contentType = $value->getType();
+            return true;
         }
-        if ($value->getType() !== $this->contentType) {
-            throw new InvalidTagValueException("Cannot add " . $value->getType()->getName() . " to " . $this->getType()->getName() .
-                " with content type " . $this->contentType->getName());
-        }
+        return $value->getType() === $this->contentType;
     }
 
     /**
@@ -163,7 +159,7 @@ class ListTag extends ArrayValueTag
     /**
      * @param Reader $reader
      * @param TagOptions $options
-     * @param int $contentType
+     * @param TagType $contentType
      * @param int $length
      * @return string
      * @throws NbtException
@@ -181,10 +177,21 @@ class ListTag extends ArrayValueTag
 
     /**
      * @return bool
+     * @phpstan-assert-if-true !null $this->rawContent
+     * @phpstan-assert-if-true !null $this->rawContentLength
+     * @phpstan-assert-if-true !null $this->rawContentFormat
      */
     public function isRaw(): bool
     {
         return $this->rawContent !== null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function checkArrayKey($offset): bool
+    {
+        return is_int($offset);
     }
 
     /**
@@ -196,8 +203,7 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @param Tag $value
-     * @throws NbtException
+     * @inheritDoc
      */
     public function offsetSet($offset, $value): void
     {
@@ -205,13 +211,15 @@ class ListTag extends ArrayValueTag
             throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
-        $previousValue = $this->offsetGet($offset);
-        parent::offsetSet($offset, $value);
-        if ($this->contentType === TagType::END) {
-            $this->contentType = $value->getType();
+        /** @var Tag|null $previousValue */
+        $previousValue = null;
+        // $offset is null when appending ($list[] = $tag), and null array keys are deprecated since PHP 8.5
+        if ($offset !== null) {
+            $previousValue = $this->valueArray[$offset] ?? null;
         }
-        $previousValue?->setParentTag(null);
+        parent::offsetSet($offset, $value);
         $value->setParentTag($this);
+        $previousValue?->setParentTag(null);
     }
 
     /**
@@ -224,7 +232,9 @@ class ListTag extends ArrayValueTag
             throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
-        $this->offsetGet($offset)?->setParentTag(null);
+        /** @var Tag|null $previousValue */
+        $previousValue = $this->valueArray[$offset] ?? null;
+        $previousValue?->setParentTag(null);
         parent::offsetUnset($offset);
     }
 
