@@ -7,6 +7,9 @@ namespace Aternos\Nbt\Tag;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 
+/**
+ * @extends ArrayValueTag<int>
+ */
 class LongArrayTag extends ArrayValueTag
 {
     public const TagType TYPE = TagType::LONG_ARRAY;

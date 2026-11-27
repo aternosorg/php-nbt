@@ -8,6 +8,9 @@ use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 
+/**
+ * @extends ArrayValueTag<int>
+ */
 class IntArrayTag extends ArrayValueTag
 {
     public const TagType TYPE = TagType::INT_ARRAY;

@@ -80,13 +80,14 @@ abstract class Tag implements JsonSerializable
             throw new CircularStructureException("Failed to resolve path: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        if($this->parentTag) {
-            $path = [...$this->parentTag->getPath(), $this->getName()];
-        }else {
-            $path = [$this->getName()];
+        try {
+            if($this->parentTag) {
+                return [...$this->parentTag->getPath(), $this->getName()];
+            }
+            return [$this->getName()];
+        } finally {
+            $this->isBeingSerialized = false;
         }
-        $this->isBeingSerialized = false;
-        return $path;
     }
 
     /**
@@ -180,10 +181,6 @@ abstract class Tag implements JsonSerializable
      */
     public function writeData(Writer $writer, bool $named = true): static
     {
-        if ($this->isBeingSerialized) {
-            throw new CircularStructureException("Failed to serialize: Circular NBT structure detected");
-        }
-        $this->isBeingSerialized = true;
         $writer->write(pack("C", $this->getType()->value));
         $serializer = $writer->getSerializer();
         if ($named && static::canBeNamed()) {
@@ -193,9 +190,30 @@ abstract class Tag implements JsonSerializable
             }
             $serializer->writeString($this->getName());
         }
-        $this->writeContent($writer);
-        $this->isBeingSerialized = false;
+        $this->writeGuardedContent($writer);
         return $this;
+    }
+
+    /**
+     * Write the content of this tag and throw instead of recursing forever if the tag contains itself
+     *
+     * Used for named tags and for list entries, so every way a tag can contain another tag is checked.
+     *
+     * @throws NbtException
+     */
+    protected function writeGuardedContent(Writer $writer): void
+    {
+        if ($this->isBeingSerialized) {
+            throw new CircularStructureException("Failed to serialize " . $this->getType()->getName() .
+                ($this->name !== null ? " '" . $this->name . "'" : "") . ": Circular NBT structure detected");
+        }
+        $this->isBeingSerialized = true;
+        try {
+            $this->writeContent($writer);
+        } finally {
+            // Also reset after a failed write, otherwise the next write would report a circular structure
+            $this->isBeingSerialized = false;
+        }
     }
 
     /**
