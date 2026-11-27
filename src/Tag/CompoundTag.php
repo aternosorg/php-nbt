@@ -14,12 +14,16 @@ use Aternos\Nbt\NbtFormat;
 use Countable;
 use Iterator;
 
+/**
+ * @implements Iterator<string, Tag>
+ * @implements ArrayAccess<string, Tag>
+ */
 class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 {
     public const TagType TYPE = TagType::COMPOUND;
 
     /**
-     * @var Tag[]
+     * @var array<int, Tag>
      */
     protected array $valueArray = [];
     protected ?string $rawContent = null;
@@ -27,6 +31,8 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @return bool
+     * @phpstan-assert-if-true !null $this->rawContent
+     * @phpstan-assert-if-true !null $this->rawContentFormat
      */
     public function isRaw(): bool
     {
@@ -243,6 +249,7 @@ class CompoundTag extends Tag implements Iterator, ArrayAccess, Countable
 
     /**
      * @inheritDoc
+     * @return array<string, Tag>
      */
     public function jsonSerialize(): array
     {
