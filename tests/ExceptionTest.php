@@ -18,7 +18,6 @@ use Aternos\Nbt\IO\Reader\ZLibCompressedStringReader;
 use Aternos\Nbt\IO\Writer\StringWriter;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
-use Aternos\Nbt\String\StringDataFormatException as DeprecatedStringDataFormatException;
 use Aternos\Nbt\Tag\CompoundTag;
 use Aternos\Nbt\Tag\IntArrayTag;
 use Aternos\Nbt\Tag\IntTag;
@@ -41,21 +40,15 @@ class ExceptionTest extends TestCase
     #[TestWith([CompressionException::class])]
     #[TestWith([CircularStructureException::class])]
     #[TestWith([StringDataFormatException::class])]
-    #[TestWith([DeprecatedStringDataFormatException::class])]
     #[TestWith([BinaryDataException::class])]
     public function testExceptionExtendsNbtException(string $class): void
     {
         $this->assertTrue(is_subclass_of($class, NbtException::class), $class . " does not extend NbtException");
     }
 
-    public function testDeprecatedStringDataFormatExceptionExtendsNewClass(): void
+    public function testJavaEncodingThrowsStringDataFormatException(): void
     {
-        $this->assertTrue(is_subclass_of(DeprecatedStringDataFormatException::class, StringDataFormatException::class));
-    }
-
-    public function testJavaEncodingThrowsDeprecatedClassForCompatibility(): void
-    {
-        $this->expectException(DeprecatedStringDataFormatException::class);
+        $this->expectException(StringDataFormatException::class);
         JavaEncoding::decode("\0");
     }
 

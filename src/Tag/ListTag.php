@@ -101,12 +101,19 @@ class ListTag extends ArrayValueTag
     }
 
     /**
+     * Accepts tags of the content type, or any tag except TAG_End if the list is empty and has no content type yet
+     *
      * @inheritDoc
+     * @throws InvalidTagValueException
      */
     protected function checkArrayValue($value): bool
     {
         if (!($value instanceof Tag)) {
             return false;
+        }
+        if ($value instanceof EndTag) {
+            throw new InvalidTagValueException("Cannot add " . $value->getType()->getName() . " to " . $this->getType()->getName() .
+                ", TAG_End only marks an empty list");
         }
         if ($this->count() === 0 && $this->contentType === TagType::END) {
             $this->contentType = $value->getType();

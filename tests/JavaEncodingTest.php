@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aternos\Nbt\Tests;
 
 use Aternos\Nbt\String\JavaEncoding;
-use Aternos\Nbt\String\StringDataFormatException;
+use Aternos\Nbt\Exception\StringDataFormatException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
