@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\String;
 
+use Aternos\Nbt\Exception\StringDataFormatException;
+
 /**
  * https://py2jdbc.readthedocs.io/en/latest/mutf8.html
  * https://docs.oracle.com/javase/8/docs/api/java/io/DataInput.html#modified-utf-8

@@ -7,7 +7,7 @@ namespace Aternos\Nbt\Deserializer;
 use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
-use Aternos\Nbt\String\StringDataFormatException;
+use Aternos\Nbt\Exception\StringDataFormatException;
 use Aternos\Nbt\IO\Binary;
 
 class JavaEditionNbtDeserializer extends NbtDeserializer

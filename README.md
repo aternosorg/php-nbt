@@ -152,3 +152,5 @@ Version 2 contains these breaking changes:
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
   `RawTagReadResult::getTagType()` returns `TagType` as well.
 - `ByteTag`, `ShortTag` and `IntTag`, and the values of `ByteArrayTag` and `IntArrayTag`, reject values outside the range of their type with an `InvalidTagValueException` instead of silently truncating them when written.
+- `Aternos\Nbt\String\StringDataFormatException` is removed.
+  Catch `Aternos\Nbt\Exception\StringDataFormatException` instead.
