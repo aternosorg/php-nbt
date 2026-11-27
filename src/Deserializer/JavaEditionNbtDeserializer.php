@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Deserializer;
 
-use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
 use Aternos\Nbt\String\StringDataFormatException;
@@ -68,7 +67,7 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
     public function readLong(): DeserializerIntReadResult
     {
         $raw = $this->readRawLong();
-        $value = unpack("q", MachineByteOrder::isLittleEndian() ? strrev($raw) : $raw)[1];
+        $value = Binary::readLong($raw);
         return new DeserializerIntReadResult($value, $raw);
     }
 

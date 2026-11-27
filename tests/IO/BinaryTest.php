@@ -15,11 +15,25 @@ class BinaryTest extends TestCase
     #[TestWith(["readShort", "\x00", "Not enough bytes: need 2, have 1"])]
     #[TestWith(["readLInt", "\x00\x00", "Not enough bytes: need 4, have 2"])]
     #[TestWith(["readDouble", "\x00\x00\x00", "Not enough bytes: need 8, have 3"])]
+    #[TestWith(["readLong", "\x00\x00\x00\x00\x00\x00\x00", "Not enough bytes: need 8, have 7"])]
+    #[TestWith(["readLLong", "\x00", "Not enough bytes: need 8, have 1"])]
     public function testFixedSizeReadRejectsShortData(string $method, string $data, string $message): void
     {
         $this->expectException(BinaryDataException::class);
         $this->expectExceptionMessage($message);
         Binary::$method($data);
+    }
+
+    #[TestWith([PHP_INT_MIN, "8000000000000000", "0000000000000080"])]
+    #[TestWith([PHP_INT_MAX, "7fffffffffffffff", "ffffffffffffff7f"])]
+    #[TestWith([-1, "ffffffffffffffff", "ffffffffffffffff"])]
+    #[TestWith([0x0102030405060708, "0102030405060708", "0807060504030201"])]
+    public function testLongEncodingInBothByteOrders(int $value, string $bigEndianHex, string $littleEndianHex): void
+    {
+        $this->assertSame($bigEndianHex, bin2hex(Binary::writeLong($value)));
+        $this->assertSame($littleEndianHex, bin2hex(Binary::writeLLong($value)));
+        $this->assertSame($value, Binary::readLong(hex2bin($bigEndianHex)));
+        $this->assertSame($value, Binary::readLLong(hex2bin($littleEndianHex)));
     }
 
     #[TestWith(["readVarInt", "", "No bytes left in buffer while reading VarInt"])]

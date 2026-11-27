@@ -127,6 +127,44 @@ final class Binary
     }
 
     /**
+     * Read a signed big endian 64-bit integer
+     *
+     * @throws BinaryDataException
+     */
+    public static function readLong(string $data): int
+    {
+        // "J" is unsigned, but PHP ints are signed 64-bit, so values above PHP_INT_MAX wrap to negative numbers
+        return self::unpackExact("J", $data, 8);
+    }
+
+    /**
+     * Write a signed big endian 64-bit integer
+     */
+    public static function writeLong(int $value): string
+    {
+        return pack("J", $value);
+    }
+
+    /**
+     * Read a signed little endian 64-bit integer
+     *
+     * @throws BinaryDataException
+     */
+    public static function readLLong(string $data): int
+    {
+        // "P" is unsigned, but PHP ints are signed 64-bit, so values above PHP_INT_MAX wrap to negative numbers
+        return self::unpackExact("P", $data, 8);
+    }
+
+    /**
+     * Write a signed little endian 64-bit integer
+     */
+    public static function writeLLong(int $value): string
+    {
+        return pack("P", $value);
+    }
+
+    /**
      * Read a big endian 32-bit float
      *
      * @throws BinaryDataException

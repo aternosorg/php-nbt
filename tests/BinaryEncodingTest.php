@@ -34,6 +34,9 @@ class BinaryEncodingTest extends TestCase
         yield "java int max" => [$java, "Int", 2147483647, "7fffffff"];
         yield "java int min" => [$java, "Int", -2147483648, "80000000"];
         yield "java long -2" => [$java, "Long", -2, "fffffffffffffffe"];
+        yield "java long -1" => [$java, "Long", -1, "ffffffffffffffff"];
+        yield "java long max" => [$java, "Long", PHP_INT_MAX, "7fffffffffffffff"];
+        yield "java long min" => [$java, "Long", PHP_INT_MIN, "8000000000000000"];
         yield "java float -1.5" => [$java, "Float", -1.5, "bfc00000"];
         yield "java float infinity" => [$java, "Float", INF, "7f800000"];
         yield "java float negative zero" => [$java, "Float", -0.0, "80000000"];
@@ -53,6 +56,9 @@ class BinaryEncodingTest extends TestCase
         yield "bedrock int max" => [$bedrock, "Int", 2147483647, "ffffff7f"];
         yield "bedrock int min" => [$bedrock, "Int", -2147483648, "00000080"];
         yield "bedrock long -2" => [$bedrock, "Long", -2, "feffffffffffffff"];
+        yield "bedrock long -1" => [$bedrock, "Long", -1, "ffffffffffffffff"];
+        yield "bedrock long max" => [$bedrock, "Long", PHP_INT_MAX, "ffffffffffffff7f"];
+        yield "bedrock long min" => [$bedrock, "Long", PHP_INT_MIN, "0000000000000080"];
         yield "bedrock float -1.5" => [$bedrock, "Float", -1.5, "0000c0bf"];
         yield "bedrock float infinity" => [$bedrock, "Float", INF, "0000807f"];
         yield "bedrock float negative zero" => [$bedrock, "Float", -0.0, "00000080"];

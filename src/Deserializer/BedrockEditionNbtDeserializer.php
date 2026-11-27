@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Deserializer;
 
-use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\StringDataFormatException;
 use Aternos\Nbt\IO\Binary;
@@ -67,7 +66,7 @@ class BedrockEditionNbtDeserializer extends NbtDeserializer
     public function readLong(): DeserializerIntReadResult
     {
         $raw = $this->readRawLong();
-        $value = unpack("q", MachineByteOrder::isBigEndian() ? strrev($raw) : $raw)[1];
+        $value = Binary::readLLong($raw);
         return new DeserializerIntReadResult($value, $raw);
     }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Serializer;
 
-use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\String\JavaEncoding;
 use Aternos\Nbt\IO\Binary;
@@ -67,8 +66,7 @@ class JavaEditionNbtSerializer extends NbtSerializer
      */
     public function writeLong(int $value): static
     {
-        $packed = pack("q", $value);
-        $this->getWriter()->write(MachineByteOrder::isLittleEndian() ? strrev($packed) : $packed);
+        $this->getWriter()->write(Binary::writeLong($value));
         return $this;
     }
 

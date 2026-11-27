@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Serializer;
 
-use Aternos\Nbt\MachineByteOrder;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\IO\Binary;
 
@@ -66,8 +65,7 @@ class BedrockEditionNbtSerializer extends NbtSerializer
      */
     public function writeLong(int $value): static
     {
-        $packed = pack("q", $value);
-        $this->getWriter()->write(MachineByteOrder::isBigEndian() ? strrev($packed) : $packed);
+        $this->getWriter()->write(Binary::writeLLong($value));
         return $this;
     }
 

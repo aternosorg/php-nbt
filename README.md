@@ -117,6 +117,7 @@ file_put_contents("data.nbt", $writer->getStringData());
 
 ### Errors
 All exceptions that this library throws because of invalid data or tag values extend `\Aternos\Nbt\Exception\NbtException`.
+Input that ends unexpectedly throws an `\Aternos\Nbt\IO\BinaryDataException`, which extends `NbtException` as well.
 
 ### Bedrock Edition level.dat
 While the Bedrock Edition level.dat file is an uncompressed NBT file, 
@@ -152,3 +153,6 @@ Version 2 contains these breaking changes:
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
   `RawTagReadResult::getTagType()` returns `TagType` as well.
 - `ByteTag`, `ShortTag` and `IntTag`, and the values of `ByteArrayTag` and `IntArrayTag`, reject values outside the range of their type with an `InvalidTagValueException` instead of silently truncating them when written.
+- Truncated input throws an `Aternos\Nbt\IO\BinaryDataException` (a subclass of `NbtException`) instead of a `pocketmine\utils\BinaryDataException`, because the dependency on `pocketmine/binaryutils` was removed.
+- `Aternos\Nbt\MachineByteOrder` is removed.
+  Longs are read and written with the new `Binary::readLong()`/`writeLong()` (big endian) and `Binary::readLLong()`/`writeLLong()` (little endian), which do not depend on the byte order of the machine.
