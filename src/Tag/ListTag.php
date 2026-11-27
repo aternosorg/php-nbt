@@ -12,6 +12,11 @@ use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use Aternos\Nbt\NbtFormat;
 
+/**
+ * A list of unnamed tags that all have the same type
+ *
+ * @extends ArrayValueTag<Tag>
+ */
 class ListTag extends ArrayValueTag
 {
     public const TagType TYPE = TagType::LIST;
@@ -98,18 +103,20 @@ class ListTag extends ArrayValueTag
     }
 
     /**
-     * @inheritDoc
+     * Accepts tags of the content type, or any tag if the list is empty and has no content type yet
      */
-    protected function checkArrayValue($value): bool
+    protected function checkValue(mixed $value): void
     {
-        if (!($value instanceof Tag)) {
-            return false;
+        if (!$value instanceof Tag) {
+            throw new InvalidTagValueException("Invalid value of type " . get_debug_type($value) . " for " . $this->getType()->getName());
         }
-        if ($this->count() === 0 && $this->contentType === TagType::END) {
-            $this->contentType = $value->getType();
-            return true;
+        if ($this->contentType === TagType::END && $this->count() === 0) {
+            return;
         }
-        return $value->getType() === $this->contentType;
+        if ($value->getType() !== $this->contentType) {
+            throw new InvalidTagValueException("Cannot add " . $value->getType()->getName() . " to " . $this->getType()->getName() .
+                " with content type " . $this->contentType->getName());
+        }
     }
 
     /**
@@ -183,21 +190,14 @@ class ListTag extends ArrayValueTag
     /**
      * @inheritDoc
      */
-    protected function checkArrayKey($offset): bool
-    {
-        return is_int($offset);
-    }
-
-    /**
-     * @inheritDoc
-     */
     protected function getTagTypeString(): string
     {
         return parent::getTagTypeString() . "<" . $this->contentType->getName() . ">";
     }
 
     /**
-     * @inheritDoc
+     * @param Tag $value
+     * @throws NbtException
      */
     public function offsetSet($offset, $value): void
     {
@@ -205,15 +205,13 @@ class ListTag extends ArrayValueTag
             throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
-        /** @var Tag|null $previousValue */
-        $previousValue = null;
-        // $offset is null when appending ($list[] = $tag), and null array keys are deprecated since PHP 8.5
-        if ($offset !== null) {
-            $previousValue = $this->valueArray[$offset] ?? null;
-        }
+        $previousValue = $this->offsetGet($offset);
         parent::offsetSet($offset, $value);
-        $value->setParentTag($this);
+        if ($this->contentType === TagType::END) {
+            $this->contentType = $value->getType();
+        }
         $previousValue?->setParentTag(null);
+        $value->setParentTag($this);
     }
 
     /**
@@ -226,9 +224,7 @@ class ListTag extends ArrayValueTag
             throw new RawTagModificationException("Raw list tags cannot be modified");
         }
 
-        /** @var Tag|null $previousValue */
-        $previousValue = $this->valueArray[$offset] ?? null;
-        $previousValue?->setParentTag(null);
+        $this->offsetGet($offset)?->setParentTag(null);
         parent::offsetUnset($offset);
     }
 
