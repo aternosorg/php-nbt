@@ -9,6 +9,9 @@ use Aternos\Nbt\Exception\NbtException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 
+/**
+ * @extends ArrayValueTag<int>
+ */
 class ByteArrayTag extends ArrayValueTag
 {
     public const TagType TYPE = TagType::BYTE_ARRAY;

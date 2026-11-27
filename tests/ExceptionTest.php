@@ -56,7 +56,7 @@ class ExceptionTest extends TestCase
     public function testJavaEncodingThrowsDeprecatedClassForCompatibility(): void
     {
         $this->expectException(DeprecatedStringDataFormatException::class);
-        JavaEncoding::getInstance()->decode("\0");
+        JavaEncoding::decode("\0");
     }
 
     public function testInvalidArrayValueThrowsInvalidTagValueException(): void

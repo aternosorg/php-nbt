@@ -349,6 +349,7 @@ final class Binary
     /**
      * Unpack a single value after checking that enough bytes are available
      *
+     * @return ($format is 'G'|'g'|'E'|'e' ? float : int)
      * @throws BinaryDataException
      */
     protected static function unpackExact(string $format, string $data, int $length): int|float
