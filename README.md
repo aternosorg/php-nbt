@@ -51,6 +51,8 @@ $myInt = new \Aternos\Nbt\Tag\IntTag();
 $myInt->setValue(42);
 echo $myInt->getValue(); // 42
 ```
+Values outside the range of the tag type (e.g. `128` for a `ByteTag`) throw an `\Aternos\Nbt\Exception\InvalidTagValueException`.
+The same applies to the values of `ByteArrayTag` and `IntArrayTag`.
 
 On String tags, `getValue()` and `setValue()` use the UTF-8 encoding and convert strings based on the selected NBT flavor 
 when being serialized.
@@ -149,3 +151,4 @@ Version 2 contains these breaking changes:
   `Tag::TYPE` constants and `getType()` return `TagType`, `TagType::NAMES` is replaced by `$type->getName()`, and `Tag::TAGS`/`Tag::getTagClass()` by `$type->getTagClass()`.
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
   `RawTagReadResult::getTagType()` returns `TagType` as well.
+- `ByteTag`, `ShortTag` and `IntTag`, and the values of `ByteArrayTag` and `IntArrayTag`, reject values outside the range of their type with an `InvalidTagValueException` instead of silently truncating them when written.
