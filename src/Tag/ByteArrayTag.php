@@ -4,27 +4,76 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\Deserializer\DeserializerIntReadResult;
-use Aternos\Nbt\Deserializer\NbtDeserializer;
-use Aternos\Nbt\Serializer\NbtSerializer;
+use Aternos\Nbt\Exception\InvalidTagValueException;
+use Aternos\Nbt\Exception\NbtException;
+use Aternos\Nbt\IO\Reader\Reader;
+use Aternos\Nbt\IO\Writer\Writer;
 
-class ByteArrayTag extends NumberArrayTag
+class ByteArrayTag extends ArrayValueTag
 {
     public const TagType TYPE = TagType::BYTE_ARRAY;
 
-    protected static function getEntryTagClass(): string
+    /**
+     * @inheritDoc
+     */
+    protected function writeValues(Writer $writer): string
     {
-        return ByteTag::class;
+        foreach ($this->valueArray as $val) {
+            $writer->getSerializer()->writeByte($val);
+        }
+        return "";
     }
 
-    protected static function readNumber(NbtDeserializer $deserializer): DeserializerIntReadResult
+    /**
+     * @inheritDoc
+     * @throws NbtException
+     */
+    protected function readValues(Reader $reader, int $length): array
     {
-        return $deserializer->readByte();
+        $values = [];
+        for ($i = 0; $i < $length; $i++) {
+            $values[] = $reader->getDeserializer()->readByte()->getValue();
+        }
+        return $values;
     }
 
-    protected static function writeNumber(NbtSerializer $serializer, int $value): void
+    /**
+     * @inheritDoc
+     */
+    protected static function readValuesRaw(Reader $reader, int $length): string
     {
-        $serializer->writeByte($value);
+        $result = "";
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $reader->getDeserializer()->readByte()->getRawData();
+        }
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function checkArrayValue($value): bool
+    {
+        return is_int($value);
+    }
+
+    /**
+     * @throws InvalidTagValueException if $value is an int outside the range of ByteTag
+     */
+    public function offsetSet($offset, $value): void
+    {
+        if (is_int($value)) {
+            ByteTag::checkValueRange($value, $this->getType());
+        }
+        parent::offsetSet($offset, $value);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function checkArrayKey($offset): bool
+    {
+        return is_int($offset);
     }
 
     /**

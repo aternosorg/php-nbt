@@ -151,7 +151,7 @@ class NumberRangeTest extends TestCase
     {
         $array = new ByteArrayTag();
 
-        $this->expectExceptionObject(new InvalidTagValueException("Invalid value of type string for TAG_Byte_Array"));
+        $this->expectExceptionObject(new InvalidTagValueException("Invalid array value"));
         $array[] = "1";
     }
 }
