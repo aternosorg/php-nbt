@@ -52,7 +52,7 @@ class ListTag extends ArrayValueTag
     {
         /** @var Tag $value */
         foreach ($this->valueArray as $value) {
-            $value->writeContent($writer);
+            $value->writeGuardedContent($writer);
         }
         return "";
     }

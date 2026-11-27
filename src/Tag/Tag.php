@@ -181,26 +181,39 @@ abstract class Tag implements JsonSerializable
      */
     public function writeData(Writer $writer, bool $named = true): static
     {
+        $writer->write(pack("C", $this->getType()->value));
+        $serializer = $writer->getSerializer();
+        if ($named && static::canBeNamed()) {
+            $name = $this->getName();
+            if (is_null($name)) {
+                throw new InvalidTagValueException("Cannot write named tag, because tag does not have a name value");
+            }
+            $serializer->writeString($this->getName());
+        }
+        $this->writeGuardedContent($writer);
+        return $this;
+    }
+
+    /**
+     * Write the content of this tag and throw instead of recursing forever if the tag contains itself
+     *
+     * Used for named tags and for list entries, so every way a tag can contain another tag is checked.
+     *
+     * @throws NbtException
+     */
+    protected function writeGuardedContent(Writer $writer): void
+    {
         if ($this->isBeingSerialized) {
-            throw new CircularStructureException("Failed to serialize: Circular NBT structure detected");
+            throw new CircularStructureException("Failed to serialize " . $this->getType()->getName() .
+                ($this->name !== null ? " '" . $this->name . "'" : "") . ": Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
         try {
-            $writer->write(pack("C", $this->getType()->value));
-            $serializer = $writer->getSerializer();
-            if ($named && static::canBeNamed()) {
-                $name = $this->getName();
-                if (is_null($name)) {
-                    throw new InvalidTagValueException("Cannot write named tag, because tag does not have a name value");
-                }
-                $serializer->writeString($this->getName());
-            }
             $this->writeContent($writer);
         } finally {
             // Also reset after a failed write, otherwise the next write would report a circular structure
             $this->isBeingSerialized = false;
         }
-        return $this;
     }
 
     /**

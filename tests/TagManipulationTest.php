@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tests;
 
+use Aternos\Nbt\Exception\CircularStructureException;
 use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\ArrayValueTag;
@@ -453,6 +454,37 @@ class TagManipulationTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage("Circular NBT structure detected");
         $outer->write(new StringWriter());
+    }
+
+    public function testListThatContainsItselfIsDetected(): void
+    {
+        $list = new ListTag();
+        $list[] = $list;
+
+        $this->expectException(CircularStructureException::class);
+        new CompoundTag()->set("list", $list)->write(new StringWriter());
+    }
+
+    public function testListThatContainsItselfThroughAnotherListIsDetected(): void
+    {
+        $outer = new ListTag();
+        $inner = new ListTag();
+        $outer[] = $inner;
+        $inner[] = $outer;
+
+        $this->expectException(CircularStructureException::class);
+        new CompoundTag()->set("list", $outer)->write(new StringWriter());
+    }
+
+    public function testListThatContainsItselfThroughCompoundIsDetected(): void
+    {
+        $list = new ListTag();
+        $compound = new CompoundTag();
+        $list[] = $compound;
+        $compound->set("list", $list);
+
+        $this->expectException(CircularStructureException::class);
+        $compound->write(new StringWriter());
     }
 
     public function testTagCanBeWrittenAgainAfterFailedWrite(): void
