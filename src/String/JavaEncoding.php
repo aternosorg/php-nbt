@@ -10,28 +10,17 @@ namespace Aternos\Nbt\String;
  * https://docs.oracle.com/javase/6/docs/api/java/io/DataInput.html#readUTF%28%29
  * Good luck
  */
-class JavaEncoding
+final class JavaEncoding
 {
-    protected static ?JavaEncoding $instance = null;
-
     /**
-     * @return static
-     */
-    static function getInstance(): static
-    {
-        if (static::$instance === null) {
-            static::$instance = new static();
-        }
-        return static::$instance;
-    }
-
-    /**
+     * Convert a string to Java's modified UTF-8
+     *
      * @param string $string
      * @param string $sourceEncoding
      * @return string
      * @throws StringDataFormatException if $string is not valid in $sourceEncoding
      */
-    public function encode(string $string, string $sourceEncoding = "UTF-8"): string
+    public static function encode(string $string, string $sourceEncoding = "UTF-8"): string
     {
         $result = "";
 
@@ -77,9 +66,11 @@ class JavaEncoding
     }
 
     /**
-     * @throws StringDataFormatException
+     * Convert a string from Java's modified UTF-8 to $outputEncoding
+     *
+     * @throws StringDataFormatException if $string is not valid modified UTF-8
      */
-    public function decode(string $string, string $outputEncoding = "UTF-8"): string
+    public static function decode(string $string, string $outputEncoding = "UTF-8"): string
     {
         $result = "";
         for ($i = 0; $i < strlen($string); $i++) {
