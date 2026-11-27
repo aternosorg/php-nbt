@@ -25,7 +25,7 @@ class JavaEncodingTest extends TestCase
     #[DataProvider("encodingProvider")]
     public function testEncode(string $utf8, string $javaEncoded): void
     {
-        $this->assertSame($javaEncoded, JavaEncoding::getInstance()->encode($utf8));
+        $this->assertSame($javaEncoded, JavaEncoding::encode($utf8));
     }
 
     /**
@@ -34,7 +34,7 @@ class JavaEncodingTest extends TestCase
     #[DataProvider("encodingProvider")]
     public function testDecode(string $utf8, string $javaEncoded): void
     {
-        $this->assertSame($utf8, JavaEncoding::getInstance()->decode($javaEncoded));
+        $this->assertSame($utf8, JavaEncoding::decode($javaEncoded));
     }
 
     #[TestWith(["a\0b"], "raw NUL byte")]
@@ -45,7 +45,7 @@ class JavaEncodingTest extends TestCase
     public function testDecodeRejectsInvalidData(string $data): void
     {
         $this->expectException(StringDataFormatException::class);
-        JavaEncoding::getInstance()->decode($data);
+        JavaEncoding::decode($data);
     }
 
     #[TestWith(["a\xFFb"], "invalid lead byte")]
@@ -55,6 +55,6 @@ class JavaEncodingTest extends TestCase
     {
         $this->expectException(StringDataFormatException::class);
         $this->expectExceptionMessage("Invalid UTF-8 character");
-        JavaEncoding::getInstance()->encode($data);
+        JavaEncoding::encode($data);
     }
 }
