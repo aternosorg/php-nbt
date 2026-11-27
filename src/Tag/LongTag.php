@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
-
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 
 class LongTag extends IntValueTag
 {
-    use RawValueTag;
-
     public const TagType TYPE = TagType::LONG;
 
     /**
@@ -19,10 +16,6 @@ class LongTag extends IntValueTag
      */
     public function writeContent(Writer $writer): static
     {
-        if ($this->rawValueValid($writer->getFormat())) {
-            $writer->write($this->rawValue);
-            return $this;
-        }
         $writer->getSerializer()->writeLong($this->value);
         return $this;
     }
@@ -32,9 +25,7 @@ class LongTag extends IntValueTag
      */
     protected function readContent(Reader $reader): static
     {
-        $result = $reader->getDeserializer()->readLong();
-        $this->setRawDataFromSerializer($result, $reader->getFormat());
-        $this->value = $result->getValue();
+        $this->value = $reader->getDeserializer()->readLong()->getValue();
         return $this;
     }
 
@@ -44,15 +35,6 @@ class LongTag extends IntValueTag
     protected static function readContentRaw(Reader $reader, TagOptions $options): string
     {
         return $reader->getDeserializer()->readLong()->getRawData();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setValue(int $value): static
-    {
-        $this->resetRawValue();
-        return parent::setValue($value);
     }
 
     /**

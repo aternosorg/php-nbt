@@ -152,3 +152,6 @@ Version 2 contains these breaking changes:
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
   `RawTagReadResult::getTagType()` returns `TagType` as well.
 - `ByteTag`, `ShortTag` and `IntTag`, and the values of `ByteArrayTag` and `IntArrayTag`, reject values outside the range of their type with an `InvalidTagValueException` instead of silently truncating them when written.
+- The `RawValueTag` trait is removed.
+  `FloatTag` and `DoubleTag` still keep the bytes they were read from and return them from `getRawValue()`, but `setRawValue()` is gone.
+  `LongTag` and `LongArrayTag` no longer keep raw values, because every long fits into a PHP int and is written back unchanged.

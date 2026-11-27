@@ -4,54 +4,28 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
-use Aternos\Nbt\IO\Reader\Reader;
-use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\Deserializer\DeserializerFloatReadResult;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
+use Aternos\Nbt\Serializer\NbtSerializer;
 
 class DoubleTag extends FloatValueTag
 {
-    use RawValueTag;
-
     public const TagType TYPE = TagType::DOUBLE;
 
     /**
      * @inheritDoc
      */
-    public function writeContent(Writer $writer): static
+    protected static function readNumber(NbtDeserializer $deserializer): DeserializerFloatReadResult
     {
-        if ($this->rawValueValid($writer->getFormat())) {
-            $writer->write($this->rawValue);
-            return $this;
-        }
-        $writer->getSerializer()->writeDouble($this->value);
-        return $this;
+        return $deserializer->readDouble();
     }
 
     /**
      * @inheritDoc
      */
-    protected function readContent(Reader $reader): static
+    protected static function writeNumber(NbtSerializer $serializer, float $value): void
     {
-        $result = $reader->getDeserializer()->readDouble();
-        $this->setRawDataFromSerializer($result, $reader->getFormat());
-        $this->value = $result->getValue();
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected static function readContentRaw(Reader $reader, TagOptions $options): string
-    {
-        return $reader->getDeserializer()->readDouble()->getRawData();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setValue(float $value): static
-    {
-        $this->resetRawValue();
-        return parent::setValue($value);
+        $serializer->writeDouble($value);
     }
 
     /**
