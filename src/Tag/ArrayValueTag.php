@@ -5,16 +5,34 @@ declare(strict_types=1);
 namespace Aternos\Nbt\Tag;
 
 use ArrayAccess;
+use ArrayIterator;
 use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\Exception\NbtException;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
 use BadMethodCallException;
 use Countable;
-use Iterator;
+use IteratorAggregate;
 
-abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Countable
+/**
+ * Base class for tags that hold a list of values (TAG_List and the number array tags)
+ *
+ * Values are always stored as a list: unsetting an entry moves all following entries one index down.
+ *
+ * @template TValue
+ * @implements IteratorAggregate<int, TValue>
+ * @implements ArrayAccess<int, TValue>
+ */
+abstract class ArrayValueTag extends Tag implements IteratorAggregate, ArrayAccess, Countable
 {
+    /**
+     * Maximum number of entries, limited by the signed 32-bit length prefix
+     */
+    public const int MAX_LENGTH = 0x7fffffff;
+
+    /**
+     * @var list<TValue>
+     */
     protected array $valueArray = [];
 
     /**
@@ -24,9 +42,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     public function writeContent(Writer $writer): static
     {
         $count = $this->count();
-        if ($count > 0x7fffffff) {
-            throw new InvalidTagValueException("Array exceeds maximum length of " . 0x7fffffff . " entries");
-        }
+        $this->checkLength($count);
         $writer->getSerializer()->writeLengthPrefix($count);
         $this->writeValues($writer);
         return $this;
@@ -61,9 +77,9 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     abstract protected function writeValues(Writer $writer): string;
 
     /**
-     * @param Reader $reader
-     * @param int $length
-     * @return array
+     * Read $length values that follow the length prefix
+     *
+     * @return list<TValue>
      */
     abstract protected function readValues(Reader $reader, int $length): array;
 
@@ -78,49 +94,28 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     }
 
     /**
-     * @param $value
-     * @return bool
+     * Throw if $value cannot be stored in this tag
+     *
+     * @throws InvalidTagValueException
      */
-    abstract protected function checkArrayValue($value): bool;
+    abstract protected function checkValue(mixed $value): void;
 
     /**
-     * @inheritDoc
+     * @throws InvalidTagValueException if $length exceeds MAX_LENGTH
      */
-    public function current(): mixed
+    protected function checkLength(int $length): void
     {
-        return current($this->valueArray);
+        if ($length > static::MAX_LENGTH) {
+            throw new InvalidTagValueException($this->getType()->getName() . " exceeds maximum length of " . static::MAX_LENGTH . " entries");
+        }
     }
 
     /**
-     * @inheritDoc
+     * @return ArrayIterator<int, TValue>
      */
-    public function next(): void
+    public function getIterator(): ArrayIterator
     {
-        next($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function key(): string|int|null
-    {
-        return key($this->valueArray);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function valid(): bool
-    {
-        return current($this->valueArray) !== false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function rewind(): void
-    {
-        reset($this->valueArray);
+        return new ArrayIterator($this->valueArray);
     }
 
     /**
@@ -128,42 +123,49 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
      */
     public function offsetExists($offset): bool
     {
-        return array_key_exists($offset, $this->valueArray);
+        return is_int($offset) && array_key_exists($offset, $this->valueArray);
     }
 
     /**
-     * @inheritDoc
+     * @return TValue|null null if there is no entry at $offset
      */
     public function offsetGet($offset): mixed
     {
-        return $this->valueArray[$offset];
+        if (!is_int($offset)) {
+            return null;
+        }
+        return $this->valueArray[$offset] ?? null;
     }
 
     /**
-     * @inheritDoc
-     * @throws InvalidTagValueException
+     * @param int|null $offset an existing index to replace a value, the current length or null to append
+     * @throws InvalidTagValueException if $value is invalid or $offset is neither an existing index nor the end of the list
      */
     public function offsetSet($offset, $value): void
     {
-        if (!$this->checkArrayValue($value)) {
-            throw new InvalidTagValueException("Invalid array value");
-        }
-        if (is_null($offset)) {
+        $this->checkValue($value);
+        $count = count($this->valueArray);
+        if ($offset === null || $offset === $count) {
+            $this->checkLength($count + 1);
             $this->valueArray[] = $value;
             return;
         }
-        if (!$this->checkArrayKey($offset)) {
-            throw new InvalidTagValueException("Invalid array offset " . $offset);
+        if (!is_int($offset) || $offset < 0 || $offset >= $count) {
+            throw new InvalidTagValueException("Invalid offset " . var_export($offset, true) . " for " .
+                $this->getType()->getName() . " with " . $count . " entries");
         }
         $this->valueArray[$offset] = $value;
     }
 
     /**
-     * @inheritDoc
+     * Remove the entry at $offset and move all following entries one index down
      */
     public function offsetUnset($offset): void
     {
-        unset($this->valueArray[$offset]);
+        if (!$this->offsetExists($offset)) {
+            return;
+        }
+        array_splice($this->valueArray, $offset, 1);
     }
 
     /**
@@ -173,12 +175,6 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     {
         return count($this->valueArray);
     }
-
-    /**
-     * @param $offset
-     * @return bool
-     */
-    abstract protected function checkArrayKey($offset): bool;
 
     /**
      * @inheritDoc
@@ -191,7 +187,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     }
 
     /**
-     * @inheritDoc
+     * @return list<TValue>
      */
     public function jsonSerialize(): array
     {

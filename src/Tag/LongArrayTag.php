@@ -4,14 +4,32 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tag;
 
+use Aternos\Nbt\Deserializer\DeserializerIntReadResult;
+use Aternos\Nbt\Deserializer\NbtDeserializer;
 use Aternos\Nbt\IO\Reader\Reader;
 use Aternos\Nbt\IO\Writer\Writer;
+use Aternos\Nbt\Serializer\NbtSerializer;
 
-class LongArrayTag extends ArrayValueTag
+class LongArrayTag extends NumberArrayTag
 {
     use RawValueTag;
 
     public const TagType TYPE = TagType::LONG_ARRAY;
+
+    protected static function getEntryTagClass(): string
+    {
+        return LongTag::class;
+    }
+
+    protected static function readNumber(NbtDeserializer $deserializer): DeserializerIntReadResult
+    {
+        return $deserializer->readLong();
+    }
+
+    protected static function writeNumber(NbtSerializer $serializer, int $value): void
+    {
+        $serializer->writeLong($value);
+    }
 
     /**
      * @inheritDoc
@@ -22,10 +40,7 @@ class LongArrayTag extends ArrayValueTag
             $writer->write($this->rawValue);
             return "";
         }
-        foreach ($this->valueArray as $value) {
-            $writer->getSerializer()->writeLong($value);
-        }
-        return "";
+        return parent::writeValues($writer);
     }
 
     /**
@@ -45,24 +60,11 @@ class LongArrayTag extends ArrayValueTag
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected static function readValuesRaw(Reader $reader, int $length): string
+    public function setValues(array $values): static
     {
-        $raw = "";
-        for ($i = 0; $i < $length; $i++) {
-            $raw .= $reader->getDeserializer()->readLong()->getRawData();
-        }
-        return $raw;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function checkArrayValue($value): bool
-    {
-        return is_int($value);
+        parent::setValues($values);
+        $this->resetRawValue();
+        return $this;
     }
 
     /**
@@ -70,8 +72,8 @@ class LongArrayTag extends ArrayValueTag
      */
     public function offsetSet($offset, $value): void
     {
-        $this->resetRawValue();
         parent::offsetSet($offset, $value);
+        $this->resetRawValue();
     }
 
     /**
@@ -79,16 +81,8 @@ class LongArrayTag extends ArrayValueTag
      */
     public function offsetUnset($offset): void
     {
-        $this->resetRawValue();
         parent::offsetUnset($offset);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function checkArrayKey($offset): bool
-    {
-        return is_int($offset);
+        $this->resetRawValue();
     }
 
     /**
