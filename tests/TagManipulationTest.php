@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tests;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\ArrayValueTag;
 use Aternos\Nbt\Tag\ByteArrayTag;
@@ -178,6 +179,14 @@ class TagManipulationTest extends TestCase
         $list = TagFixtures::intList(1);
         $this->expectException(Exception::class);
         $list[] = new StringTag();
+    }
+
+    public function testListRejectsEndTagAsFirstEntry(): void
+    {
+        $list = new ListTag();
+        $this->expectException(InvalidTagValueException::class);
+        $this->expectExceptionMessage("TAG_End");
+        $list[] = new EndTag();
     }
 
     public function testListRejectsNonTagValues(): void
