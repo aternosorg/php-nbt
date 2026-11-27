@@ -155,3 +155,6 @@ Version 2 contains these breaking changes:
 - `JavaEncoding` is `final` and has static `encode()`/`decode()` methods instead of a singleton: `JavaEncoding::getInstance()->encode($string)` becomes `JavaEncoding::encode($string)`.
 - `Aternos\Nbt\String\StringDataFormatException` is removed.
   Catch `Aternos\Nbt\Exception\StringDataFormatException` instead.
+- The `RawValueTag` trait is removed.
+  `FloatTag` and `DoubleTag` still keep the bytes they were read from and return them from `getRawValue()`, but `setRawValue()` is gone.
+  `LongTag` and `LongArrayTag` no longer keep raw values, because every long fits into a PHP int and is written back unchanged.

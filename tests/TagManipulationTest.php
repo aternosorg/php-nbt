@@ -23,6 +23,7 @@ use Aternos\Nbt\Tag\ShortTag;
 use Aternos\Nbt\Tag\StringTag;
 use Aternos\Nbt\Tag\Tag;
 use Aternos\Nbt\Tag\TagType;
+use Aternos\Nbt\IO\Reader\StringReader;
 use Aternos\Nbt\IO\Writer\StringWriter;
 use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -434,11 +435,27 @@ class TagManipulationTest extends TestCase
         $this->assertSame(3, $string->getLength(), "length is counted in bytes");
         $this->assertSame('"äb"', json_encode($string, JSON_UNESCAPED_UNICODE));
         $this->assertSame("1.5", json_encode(new FloatTag()->setValue(1.5)));
+    }
 
-        $long = new LongTag()->setValue(1);
-        $this->assertNull($long->getRawValue());
-        $long->setRawValue("raw");
-        $this->assertSame("raw", $long->getRawValue());
+    /**
+     * @throws Exception
+     */
+    public function testFloatKeepsRawValueUntilChanged(): void
+    {
+        // a NaN with a payload that PHP floats do not preserve when converted to 32 bits and back
+        $nanWithPayload = "\x7f\x80\x00\x01";
+        $data = "\x0a\x00\x00" . "\x05\x00\x01f" . $nanWithPayload . "\x00";
+        /** @var CompoundTag $root */
+        $root = Tag::load(new StringReader($data, NbtFormat::JAVA_EDITION));
+        $float = $root->getFloat("f");
+        $this->assertSame($nanWithPayload, $float->getRawValue());
+
+        $writer = new StringWriter();
+        $root->write($writer);
+        $this->assertSame($data, $writer->getStringData(), "unchanged value is written with its raw bytes");
+
+        $float->setValue(1.5);
+        $this->assertNull($float->getRawValue());
     }
 
     public function testByteArrayStringIsTruncatedAfter32Values(): void

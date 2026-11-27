@@ -12,8 +12,6 @@ use Aternos\Nbt\IO\Writer\Writer;
  */
 class LongArrayTag extends ArrayValueTag
 {
-    use RawValueTag;
-
     public const TagType TYPE = TagType::LONG_ARRAY;
 
     /**
@@ -21,10 +19,6 @@ class LongArrayTag extends ArrayValueTag
      */
     protected function writeValues(Writer $writer): string
     {
-        if ($this->rawValueValid($writer->getFormat())) {
-            $writer->write($this->rawValue);
-            return "";
-        }
         foreach ($this->valueArray as $value) {
             $writer->getSerializer()->writeLong($value);
         }
@@ -36,15 +30,10 @@ class LongArrayTag extends ArrayValueTag
      */
     protected function readValues(Reader $reader, int $length): array
     {
-        $raw = "";
         $values = [];
         for ($i = 0; $i < $length; $i++) {
-            $res = $reader->getDeserializer()->readLong();
-            $values[] = $res->getValue();
-            $raw .= $res->getRawData();
+            $values[] = $reader->getDeserializer()->readLong()->getValue();
         }
-        $this->rawValue = $raw;
-        $this->rawValueType = $reader->getFormat();
         return $values;
     }
 
@@ -66,24 +55,6 @@ class LongArrayTag extends ArrayValueTag
     protected function checkArrayValue($value): bool
     {
         return is_int($value);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetSet($offset, $value): void
-    {
-        $this->resetRawValue();
-        parent::offsetSet($offset, $value);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function offsetUnset($offset): void
-    {
-        $this->resetRawValue();
-        parent::offsetUnset($offset);
     }
 
     /**
