@@ -182,6 +182,14 @@ class TagManipulationTest extends TestCase
         $list[] = new StringTag();
     }
 
+    public function testListRejectsEndTagAsFirstEntry(): void
+    {
+        $list = new ListTag();
+        $this->expectException(InvalidTagValueException::class);
+        $this->expectExceptionMessage("TAG_End");
+        $list[] = new EndTag();
+    }
+
     public function testListRejectsNonTagValues(): void
     {
         $list = new ListTag();
