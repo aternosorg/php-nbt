@@ -101,6 +101,6 @@ class JavaEditionNbtDeserializer extends NbtDeserializer
         if(strlen($val) !== $length->getValue()){
             throw new StringDataFormatException("Failed to read string: expected length " . $length->getValue() . ", got " . strlen($val));
         }
-        return new DeserializerStringReadResult(JavaEncoding::getInstance()->decode($val), $length->getRawData() . $val);
+        return new DeserializerStringReadResult(JavaEncoding::decode($val), $length->getRawData() . $val);
     }
 }

@@ -49,7 +49,7 @@ class ExceptionTest extends TestCase
     public function testJavaEncodingThrowsStringDataFormatException(): void
     {
         $this->expectException(StringDataFormatException::class);
-        JavaEncoding::getInstance()->decode("\0");
+        JavaEncoding::decode("\0");
     }
 
     public function testInvalidArrayValueThrowsInvalidTagValueException(): void

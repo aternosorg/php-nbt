@@ -13,8 +13,16 @@ use BadMethodCallException;
 use Countable;
 use Iterator;
 
+/**
+ * @template TValue of Tag|int
+ * @implements Iterator<int, TValue>
+ * @implements ArrayAccess<int, TValue>
+ */
 abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Countable
 {
+    /**
+     * @var array<int, TValue>
+     */
     protected array $valueArray = [];
 
     /**
@@ -63,7 +71,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     /**
      * @param Reader $reader
      * @param int $length
-     * @return array
+     * @return list<TValue>
      */
     abstract protected function readValues(Reader $reader, int $length): array;
 
@@ -78,13 +86,14 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     }
 
     /**
-     * @param $value
+     * @param mixed $value
      * @return bool
      */
     abstract protected function checkArrayValue($value): bool;
 
     /**
      * @inheritDoc
+     * @return TValue|false
      */
     public function current(): mixed
     {
@@ -175,7 +184,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
     }
 
     /**
-     * @param $offset
+     * @param mixed $offset
      * @return bool
      */
     abstract protected function checkArrayKey($offset): bool;
@@ -192,6 +201,7 @@ abstract class ArrayValueTag extends Tag implements Iterator, ArrayAccess, Count
 
     /**
      * @inheritDoc
+     * @return array<int, TValue>
      */
     public function jsonSerialize(): array
     {
