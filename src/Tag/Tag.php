@@ -80,13 +80,14 @@ abstract class Tag implements JsonSerializable
             throw new CircularStructureException("Failed to resolve path: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        if($this->parentTag) {
-            $path = [...$this->parentTag->getPath(), $this->getName()];
-        }else {
-            $path = [$this->getName()];
+        try {
+            if($this->parentTag) {
+                return [...$this->parentTag->getPath(), $this->getName()];
+            }
+            return [$this->getName()];
+        } finally {
+            $this->isBeingSerialized = false;
         }
-        $this->isBeingSerialized = false;
-        return $path;
     }
 
     /**
@@ -184,17 +185,21 @@ abstract class Tag implements JsonSerializable
             throw new CircularStructureException("Failed to serialize: Circular NBT structure detected");
         }
         $this->isBeingSerialized = true;
-        $writer->write(pack("C", $this->getType()->value));
-        $serializer = $writer->getSerializer();
-        if ($named && static::canBeNamed()) {
-            $name = $this->getName();
-            if (is_null($name)) {
-                throw new InvalidTagValueException("Cannot write named tag, because tag does not have a name value");
+        try {
+            $writer->write(pack("C", $this->getType()->value));
+            $serializer = $writer->getSerializer();
+            if ($named && static::canBeNamed()) {
+                $name = $this->getName();
+                if (is_null($name)) {
+                    throw new InvalidTagValueException("Cannot write named tag, because tag does not have a name value");
+                }
+                $serializer->writeString($this->getName());
             }
-            $serializer->writeString($this->getName());
+            $this->writeContent($writer);
+        } finally {
+            // Also reset after a failed write, otherwise the next write would report a circular structure
+            $this->isBeingSerialized = false;
         }
-        $this->writeContent($writer);
-        $this->isBeingSerialized = false;
         return $this;
     }
 
