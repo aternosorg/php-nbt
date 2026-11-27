@@ -73,7 +73,13 @@ $myList = new \Aternos\Nbt\Tag\ListTag()->setContentType(\Aternos\Nbt\Tag\TagTyp
 
 $myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("Hello");
 $myList[] = new \Aternos\Nbt\Tag\StringTag()->setValue("World");
+
+//Array tags can also be set at once
+$myBytes = new \Aternos\Nbt\Tag\ByteArrayTag()->setValues([1, 2, 3]);
+echo implode(", ", $myBytes->getValues()); // 1, 2, 3
 ```
+List and array tags always keep continuous indices:
+unsetting an entry moves all following entries down, and setting an index beyond the end throws an `\Aternos\Nbt\Exception\InvalidTagValueException`.
 
 Alternatively, compound tags can be accessed using getter/setter functions. This is especially useful in combination with
 the new PHP null safe operator.
@@ -152,5 +158,10 @@ Version 2 contains these breaking changes:
 - `ListTag::getContentTag()`/`setContentTag()` are renamed to `getContentType()`/`setContentType()` and use `TagType`, as does the second parameter of `CompoundTag::getList()`.
   `RawTagReadResult::getTagType()` returns `TagType` as well.
 - `ByteTag`, `ShortTag` and `IntTag`, and the values of `ByteArrayTag` and `IntArrayTag`, reject values outside the range of their type with an `InvalidTagValueException` instead of silently truncating them when written.
-- `CompoundTag` implements `IteratorAggregate` instead of `Iterator`: `getIterator()` yields the children with their names as keys, and `current()`, `next()`, `key()`, `valid()` and `rewind()` are gone.
+- List and array tags keep continuous indices: unsetting an entry moves the following entries down, and setting an offset beyond the end throws an `InvalidTagValueException` instead of leaving a gap.
+  Reading a missing offset returns `null` instead of triggering a warning.
+- `ListTag` and the array tags implement `IteratorAggregate` instead of `Iterator`, so their `current()`, `next()`, `key()`, `valid()` and `rewind()` methods are gone.
+- `ByteArrayTag`, `IntArrayTag` and `LongArrayTag` extend the new abstract `NumberArrayTag`, which adds `getValues()` and `setValues()`.
+  `ArrayValueTag::checkArrayValue()` and `checkArrayKey()` are replaced by `checkValue()`, which throws an `InvalidTagValueException` instead of returning `false`.
+- `CompoundTag` implements `IteratorAggregate` instead of `Iterator` as well: `getIterator()` yields the children with their names as keys, and `current()`, `next()`, `key()`, `valid()` and `rewind()` are gone.
   Nested `foreach` loops over the same compound work now, because each loop gets its own iterator.
