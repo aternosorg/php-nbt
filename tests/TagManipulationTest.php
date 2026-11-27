@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aternos\Nbt\Tests;
 
+use Aternos\Nbt\Exception\InvalidTagValueException;
 use Aternos\Nbt\NbtFormat;
 use Aternos\Nbt\Tag\ArrayValueTag;
 use Aternos\Nbt\Tag\ByteArrayTag;
@@ -452,6 +453,39 @@ class TagManipulationTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage("Circular NBT structure detected");
         $outer->write(new StringWriter());
+    }
+
+    public function testTagCanBeWrittenAgainAfterFailedWrite(): void
+    {
+        $renamed = new IntTag()->setValue(2);
+        $root = new CompoundTag()
+            ->set("a", new IntTag()->setValue(1))
+            ->set("b", $renamed);
+        $renamed->setName("a");
+
+        try {
+            $root->write(new StringWriter()->setFormat(NbtFormat::JAVA_EDITION));
+            $this->fail("Writing a compound with duplicate names should fail");
+        } catch (InvalidTagValueException) {
+        }
+
+        $renamed->setName("b");
+        $writer = new StringWriter()->setFormat(NbtFormat::JAVA_EDITION);
+        $root->write($writer);
+        $this->assertNotSame("", $writer->getStringData());
+    }
+
+    public function testPathCanBeResolvedAgainAfterCircularStructureWasRemoved(): void
+    {
+        $outer = new CompoundTag();
+        $inner = new CompoundTag();
+        $outer->set("inner", $inner);
+        $inner->set("outer", $outer);
+        $this->assertNull($inner->getStringPath());
+
+        $inner->delete("outer");
+        $outer->setName("root");
+        $this->assertSame("root/inner", $inner->getStringPath());
     }
 
     protected function createByteArray(int ...$values): ByteArrayTag
